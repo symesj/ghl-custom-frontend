@@ -7,9 +7,11 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { label: "🏠 Dashboard", href: "/" },
   { label: "👤 Users", href: "/users" },
+  { label: "💼 Opportunities", href: "/opportunities" },
   { label: "📊 Analytics", href: "/charts" },
   { label: "⚙️ Settings", href: "/settings" },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
