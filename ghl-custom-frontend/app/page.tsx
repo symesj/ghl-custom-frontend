@@ -1,13 +1,51 @@
 "use client";
 
-import { Player } from "@lottiefiles/react-lottie-player/dist/react-lottie-player.esm";
+import { useState } from "react";
+import { Player } from "@lottiefiles/react-lottie-player";
 import Image from "next/image";
-import { app, auth, db } from "@/firebase"; // Proper import from firebase.ts
+import { auth } from "@/firebase";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 
 export default function HomePage() {
+  const provider = new GoogleAuthProvider();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      console.log("✅ Logged in with Google!");
+    } catch (error) {
+      console.error("❌ Google login error:", error);
+    }
+  };
+
+  const loginWithEmail = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("✅ Logged in!");
+    } catch (error) {
+      console.error("❌ Email login error:", error);
+    }
+  };
+
+  const signupWithEmail = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("✅ Account created!");
+    } catch (error) {
+      console.error("❌ Signup error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6 relative overflow-hidden">
-      
       {/* Logo */}
       <Image
         src="/fastline-logo.png"
@@ -32,15 +70,47 @@ export default function HomePage() {
       <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-center">
         Welcome to Fast AI Boss
       </h1>
-      
+
       <p className="text-lg sm:text-xl text-center text-gray-300 max-w-xl">
         The ultimate AI-powered front-end for GoHighLevel. Designed for speed, elegance, and control.
       </p>
 
-      {/* CTA */}
+      {/* 🔐 Email Auth Section */}
+      <div className="flex flex-col gap-3 items-center mt-10 w-full max-w-xs">
+        <input
+          type="email"
+          placeholder="Email"
+          className="px-4 py-2 text-black rounded w-full"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="px-4 py-2 text-black rounded w-full"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={loginWithEmail} className="bg-green-600 px-4 py-2 rounded text-white w-full">
+          Login with Email
+        </button>
+        <button onClick={signupWithEmail} className="bg-blue-600 px-4 py-2 rounded text-white w-full">
+          Sign Up
+        </button>
+      </div>
+
+      {/* 🔓 Google Login CTA */}
+      <button
+        onClick={handleGoogleLogin}
+        className="mt-6 inline-block px-6 py-3 rounded-full bg-cyan-600 hover:bg-cyan-700 transition duration-300 text-white font-semibold shadow-lg"
+      >
+        Login with Google
+      </button>
+
+      {/* 📩 Contact CTA */}
       <a
         href="mailto:sales@fastlinegroup.com"
-        className="mt-8 inline-block px-6 py-3 rounded-full bg-pink-600 hover:bg-pink-700 transition duration-300 text-white font-semibold shadow-lg"
+        className="mt-6 inline-block px-6 py-3 rounded-full bg-pink-600 hover:bg-pink-700 transition duration-300 text-white font-semibold shadow-lg"
       >
         Contact Sales
       </a>
