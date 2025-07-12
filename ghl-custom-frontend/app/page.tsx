@@ -1,70 +1,32 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
-import { app } from "@/firebase";
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-
-        const docRef = doc(db, "users", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setProfile(docSnap.data());
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    setUser(null);
-    setProfile(null);
-    router.push("/login");
-  };
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-6">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">
-        <h1 className="text-3xl font-bold mb-4">Welcome to Fast AI Boss</h1>
-        {user ? (
-          <>
-            {profile?.avatar && (
-              <img
-                src={profile.avatar}
-                alt="User Avatar"
-                className="w-24 h-24 rounded-full mx-auto mb-4"
-              />
-            )}
-            <p className="text-lg font-semibold mb-1">{profile?.name || "User"}</p>
-            <p className="text-sm text-gray-300">{user.email}</p>
-            <p className="text-xs mt-2 text-purple-400">Role: {profile?.role || "User"}</p>
-            <button
-              onClick={handleLogout}
-              className="mt-6 px-6 py-2 bg-red-600 hover:bg-red-700 transition rounded"
-            >
-              Sign Out
-            </button>
-          </>
-        ) : (
-          <p className="text-gray-400">Please login to see your dashboard.</p>
-        )}
+    <main className="min-h-screen flex flex-col items-center justify-center bg-white text-gray-900 p-8 text-center">
+      <h1 className="text-5xl font-bold mb-4">
+        Welcome to <span className="text-blue-600">Fast Ai Boss</span>
+      </h1>
+      <p className="text-lg mb-6">
+        Your streamlined Go High Level dashboard — powered by Next.js & Tailwind CSS
+      </p>
+
+      <div className="flex gap-4">
+        <a
+          href="/login"
+          className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Login to Dashboard
+        </a>
+        <a
+          href="https://github.com/symesj/ghl-custom-frontend"
+          target="_blank"
+          className="px-6 py-3 border border-gray-400 text-gray-700 rounded hover:bg-gray-100"
+        >
+          View Code on GitHub
+        </a>
       </div>
-    </div>
+
+      <p className="mt-10 text-sm text-gray-400">
+        Built by Jon Symes 🚀
+      </p>
+    </main>
   );
 }
