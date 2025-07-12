@@ -1,66 +1,53 @@
 "use client";
 
-import { Player } from "@lottiefiles/react-lottie-player";
+import { Player } from "@lottiefiles/react-lottie-player/dist/react-lottie-player.esm";
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { app, auth, db } from "@/firebase"; // Proper import from firebase.ts
 
 export default function HomePage() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setIsVisible(true), 300);
-    return () => clearTimeout(timeout);
-  }, []);
-
   return (
-    <div
-      className={`min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white px-6 transition-opacity duration-1000 ${
-        isVisible ? "opacity-100" : "opacity-0"
-      }`}
-    >
-      {/* Glow ring effect */}
-      <div className="absolute w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6 relative overflow-hidden">
+      
       {/* Logo */}
-      <div className="absolute top-6 left-6">
-        <Image src="/logo.png" alt="Fastline Group Logo" width={140} height={40} />
-      </div>
+      <Image
+        src="/fastline-logo.png"
+        alt="Fastline Group Logo"
+        width={200}
+        height={60}
+        className="mb-8"
+        priority
+      />
 
-      {/* AI Butler Animation */}
+      {/* Animation */}
+      {/* @ts-ignore */}
       <Player
         autoplay
         loop
-        src="/animations/butler.json"
+        src="/butler.json"
         style={{ height: "300px", width: "300px" }}
-        className="z-10 mb-4"
+        className="mb-6 animate-fade-in"
       />
 
-      {/* Heading */}
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-center tracking-tight mb-4 z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-        Welcome to GHL Custom Frontend
+      {/* Title */}
+      <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-center">
+        Welcome to Fast AI Boss
       </h1>
-
-      {/* Subtext */}
-      <p className="text-lg sm:text-xl text-center text-gray-300 max-w-2xl mb-8 z-10">
-        Tailored, secure, and blazing fast. Powered by Next.js, Firebase & Fastline Group.
+      
+      <p className="text-lg sm:text-xl text-center text-gray-300 max-w-xl">
+        The ultimate AI-powered front-end for GoHighLevel. Designed for speed, elegance, and control.
       </p>
 
-      {/* Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 z-10">
-        <Link
-          href="/login"
-          className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:brightness-110 text-white px-6 py-3 rounded-lg font-bold shadow-lg transition-all"
-        >
-          Login
-        </Link>
-        <a
-          href="mailto:sales@fastlinegroup.com"
-          className="bg-white text-gray-900 hover:bg-gray-200 px-6 py-3 rounded-lg font-semibold shadow-md transition"
-        >
-          Contact Sales
-        </a>
-      </div>
+      {/* CTA */}
+      <a
+        href="mailto:sales@fastlinegroup.com"
+        className="mt-8 inline-block px-6 py-3 rounded-full bg-pink-600 hover:bg-pink-700 transition duration-300 text-white font-semibold shadow-lg"
+      >
+        Contact Sales
+      </a>
+
+      {/* Background Glow */}
+      <div className="absolute -z-10 w-[500px] h-[500px] rounded-full bg-pink-600 blur-3xl opacity-20 top-10 left-20 animate-pulse"></div>
+      <div className="absolute -z-10 w-[400px] h-[400px] rounded-full bg-cyan-500 blur-3xl opacity-20 bottom-10 right-20 animate-pulse"></div>
     </div>
   );
 }
