@@ -1,36 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { app } from "@/firebase";
+
+type LogEntry = {
+  id: number;
+  message: string;
+  timestamp: string;
+};
 
 export default function SystemLogs() {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   useEffect(() => {
-    const db = getFirestore(app);
-    const q = query(collection(db, "logs"), orderBy("timestamp", "desc"));
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const logData = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate()?.toLocaleString(),
-        id: doc.id,
-      }));
-      setLogs(logData);
-    });
-
-    return () => unsub();
+    // Mocked logs — replace with real-time Firestore logs if needed
+    const mockLogs = [
+      { id: 1, message: "User Jon logged in", timestamp: "2025-07-12 08:15" },
+      { id: 2, message: "User updated settings", timestamp: "2025-07-12 09:00" },
+      { id: 3, message: "Admin deleted record", timestamp: "2025-07-12 10:30" },
+    ];
+    setLogs(mockLogs);
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded shadow-md mt-10 max-h-60 overflow-y-auto">
-      <h3 className="text-lg font-semibold mb-3">System Logs</h3>
-      <ul className="text-sm space-y-2">
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-xl font-semibold mb-4">System Logs</h2>
+      <ul className="space-y-3">
         {logs.map((log) => (
-          <li key={log.id}>
-            <span className="font-medium">{log.event}</span> –{" "}
-            <em className="text-gray-500">{log.timestamp}</em>
+          <li key={log.id} className="border-b border-gray-700 pb-2">
+            <p className="text-sm">{log.message}</p>
+            <p className="text-xs text-gray-400">{log.timestamp}</p>
           </li>
         ))}
       </ul>

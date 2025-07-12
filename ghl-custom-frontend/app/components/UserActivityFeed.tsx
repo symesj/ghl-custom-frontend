@@ -1,36 +1,51 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { getFirestore, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { app } from "@/firebase";
 
+interface UserActivity {
+  email: string;
+  role: string;
+  createdAt: { seconds: number };
+}
+
 export default function UserActivityFeed() {
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<UserActivity[]>([]);
+  const db = getFirestore(app);
 
   useEffect(() => {
-    const db = getFirestore(app);
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+    const fetchActivity = async () => {
+      const usersQuery = query(
+        collection(db, "users"),
+        orderBy("createdAt", "desc"),
+        limit(5)
+      );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        email: doc.data().email,
-        role: doc.data().role,
-        createdAt: doc.data().createdAt?.toDate()?.toLocaleString(),
-      }));
+      const querySnapshot = await getDocs(usersQuery);
+      const data: UserActivity[] = [];
+
+      querySnapshot.forEach((doc) => {
+        data.push(doc.data() as UserActivity);
+      });
+
       setActivities(data);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchActivity();
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded shadow-md mt-10">
-      <h3 className="text-lg font-semibold mb-3">Recent User Activity</h3>
+    <div className="mt-10 text-left">
+      <h2 className="text-xl font-bold mb-4">Recent User Activity</h2>
       <ul className="space-y-2">
-        {activities.map((user) => (
-          <li key={user.id} className="text-sm border-b pb-2">
-            <strong>{user.email}</strong> ({user.role}) – <em>{user.createdAt}</em>
+        {activities.map((user, index) => (
+          <li key={index} className="bg-gray-700 p-3 rounded">
+            <p className="font-semibold">{user.email}</p>
+            <p className="text-sm text-gray-300">Role: {user.role}</p>
+            <p className="text-xs text-gray-400">
+              Joined: {new Date(user.createdAt.seconds * 1000).toLocaleString()}
+            </p>
           </li>
         ))}
       </ul>
