@@ -1,47 +1,116 @@
 "use client";
 
-import React from "react";
-import { useAuth } from "../context/AuthContext";
+import React, { useState } from "react";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { getAuth, signOut } from "firebase/auth";
 import { app } from "../../firebase";
-import { useEffect } from "react";
 
-export default function Dashboard() {
-  const { email, role } = useAuth();
+export default function Login() {
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!email) router.push("/login");
-  }, [email, router]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleLogout = async () => {
-    const auth = getAuth(app);
-    await signOut(auth);
-    router.push("/login");
+    try {
+      let userCredential;
+
+      if (isNewUser) {
+        // Register
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email: userCredential.user.email,
+          role: "user",
+          createdAt: new Date(),
+        });
+
+        // 🔥 Log signup event
+        await setDoc(doc(db, "logs", `${userCredential.user.uid}_signup`), {
+          event: `User registered: ${userCredential.user.email}`,
+          timestamp: serverTimestamp(),
+        });
+
+      } else {
+        // Login
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+        // 🔥 Log login event
+        await setDoc(doc(db, "logs", `${userCredential.user.uid}_login_${Date.now()}`), {
+          event: `User logged in: ${userCredential.user.email}`,
+          timestamp: serverTimestamp(),
+        });
+      }
+
+      // Role-based redirect
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      const role = userDoc.data()?.role;
+
+      if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-4">User Dashboard</h1>
-        <p className="mb-2">
-          <span className="font-semibold">Welcome!</span>
-        </p>
-        <p className="mb-2">
-          <span className="font-semibold">Email:</span> {email}
-        </p>
-        <p className="mb-4">
-          <span className="font-semibold">Role:</span> {role}
-        </p>
-
+    <div className="max-w-md mx-auto mt-20 text-center">
+      <h2 className="text-2xl font-bold mb-4">
+        {isNewUser ? "Sign Up" : "Login"}
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full p-2 mb-4 border rounded"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full p-2 mb-4 border rounded"
+        />
         <button
-          onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-medium transition"
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
         >
-          Logout
+          {isNewUser ? "Create Account" : "Log In"}
         </button>
-      </div>
+      </form>
+      <p className="mt-4 text-sm">
+        {isNewUser ? "Already have an account?" : "Need an account?"}{" "}
+        <button
+          onClick={() => setIsNewUser(!isNewUser)}
+          className="text-blue-600 underline ml-1"
+        >
+          {isNewUser ? "Log In" : "Sign Up"}
+        </button>
+      </p>
     </div>
   );
 }
