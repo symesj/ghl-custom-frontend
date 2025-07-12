@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "@/firebase";
@@ -23,14 +23,34 @@ export default function UserDashboard() {
 
       setEmail(user.email || "");
 
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if (docSnap.exists()) {
-        setName(docSnap.data().name || "");
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setName(userData.name || "");
+
+        const apiKey = userData.ghlApiKey;
+        if (apiKey) {
+          fetchContacts(apiKey);
+        }
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  const fetchContacts = async (apiKey: string) => {
+    const res = await fetch("https://rest.gohighlevel.com/v1/contacts/", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    console.log("📥 Contacts:", data);
+  };
 
   return (
     <div className="flex min-h-screen">
