@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { label: "🏠 Dashboard", href: "/" },
-  { label: "📇 Contacts", href: "/contacts" }, // Updated from Users
+  { label: "📇 Contacts", href: "/contacts" },
+  { label: "🧲 Opportunities", href: "/opportunities" }, // ✅ ADD BACK
   { label: "📊 Analytics", href: "/charts" },
   { label: "⚙️ Settings", href: "/settings" },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();

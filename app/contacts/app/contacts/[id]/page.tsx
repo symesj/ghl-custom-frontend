@@ -34,7 +34,7 @@ export default function ContactDetailPage() {
     return () => unsub();
   }, [id]);
 
-  if (!contact) return <div className="text-white">Loading...</div>;
+  if (!contact) return <div className="text-white p-8">Loading...</div>;
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
@@ -45,11 +45,9 @@ export default function ContactDetailPage() {
           <p><strong>Email:</strong> {contact.email}</p>
           <p><strong>Phone:</strong> {contact.phone}</p>
           <p><strong>Company:</strong> {contact.companyName}</p>
-          <p><strong>Source:</strong> {contact.source}</p>
-          <p><strong>Contact Status:</strong> {contact.contactStatus}</p>
-          <p><strong>Type:</strong> {contact.type}</p>
-          <p><strong>Location ID:</strong> {contact.locationId}</p>
-          {/* Add more fields as needed */}
+          <p><strong>Location:</strong> {contact.locationId}</p>
+          <p><strong>Status:</strong> {contact.contactStatus}</p>
+          <p><strong>Tags:</strong> {contact.tags?.join(", ") || "None"}</p>
         </div>
       </main>
     </div>
