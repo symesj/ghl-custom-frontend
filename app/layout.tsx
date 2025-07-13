@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Head from "next/head";
 
 export const metadata: Metadata = {
   title: "Fast AI Boss",
@@ -13,6 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#121212" />
+        <link rel="icon" href="/icon.png" />
+      </Head>
       <body>{children}</body>
     </html>
   );
