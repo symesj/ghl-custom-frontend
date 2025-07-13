@@ -1,5 +1,6 @@
 // app/(authenticated)/layout.tsx
-import Sidebar from "@/app/components/Sidebar";
+
+import Sidebar from "../components/Sidebar";
 
 export default function AuthenticatedLayout({
   children,
@@ -7,9 +8,9 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white">
+    <div className="flex h-screen overflow-hidden bg-[#121212] text-white">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-x-auto">{children}</main>
+      <main className="flex-1 overflow-y-auto p-6">{children}</main>
     </div>
   );
 }
