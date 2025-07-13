@@ -1,116 +1,62 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { useRouter } from "next/navigation";
-import { app } from "../../firebase";
+import { useState } from "react";
+import { signInWithEmailAndPassword, getAuth } from "firebase/auth";
+import { app } from "@/firebase";
 
-export default function Login() {
-  const [isNewUser, setIsNewUser] = useState(false);
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleLogin = async () => {
+    const auth = getAuth(app);
     try {
-      let userCredential;
-
-      if (isNewUser) {
-        // Register
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-          email: userCredential.user.email,
-          role: "user",
-          createdAt: new Date(),
-        });
-
-        // 🔥 Log signup event
-        await setDoc(doc(db, "logs", `${userCredential.user.uid}_signup`), {
-          event: `User registered: ${userCredential.user.email}`,
-          timestamp: serverTimestamp(),
-        });
-
-      } else {
-        // Login
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-        // 🔥 Log login event
-        await setDoc(doc(db, "logs", `${userCredential.user.uid}_login_${Date.now()}`), {
-          event: `User logged in: ${userCredential.user.email}`,
-          timestamp: serverTimestamp(),
-        });
-      }
-
-      // Role-based redirect
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      const role = userDoc.data()?.role;
-
-      if (role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
-
-    } catch (error: any) {
-      alert(error.message);
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 text-center">
-      <h2 className="text-2xl font-bold mb-4">
-        {isNewUser ? "Sign Up" : "Login"}
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full p-2 mb-4 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full p-2 mb-4 border rounded"
-        />
+    <div className="flex h-screen bg-[#1D1044] text-white">
+      <div className="m-auto w-full max-w-md p-8 text-center">
+        <h1 className="text-3xl font-bold mb-6">Welcome to Fast AI Boss</h1>
+        <p className="mb-6 text-sm">
+          The ultimate AI-powered front-end for GoHighLevel. Designed for speed, elegance, and control.
+        </p>
+
+        <div className="mb-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 rounded bg-white text-black mb-3"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 rounded bg-white text-black"
+          />
+        </div>
+
+        {error && <div className="text-red-500 mb-3">{error}</div>}
+
         <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          onClick={handleLogin}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
         >
-          {isNewUser ? "Create Account" : "Log In"}
+          Login with Email
         </button>
-      </form>
-      <p className="mt-4 text-sm">
-        {isNewUser ? "Already have an account?" : "Need an account?"}{" "}
-        <button
-          onClick={() => setIsNewUser(!isNewUser)}
-          className="text-blue-600 underline ml-1"
-        >
-          {isNewUser ? "Log In" : "Sign Up"}
-        </button>
-      </p>
+
+        {/* 🧠 Move Butler Image Here */}
+        <div className="mt-8 flex justify-center">
+          <img src="/file.svg" alt="Butler" className="w-32 h-32" />
+        </div>
+      </div>
     </div>
   );
 }

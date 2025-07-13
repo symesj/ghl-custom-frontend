@@ -15,9 +15,18 @@ export default function ContactsPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const apiKey = userDoc.data()?.ghlApiKey;
-        if (apiKey) fetchAllContacts(apiKey);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        console.log("🔐 Firestore userDoc:", userData);
+
+        const apiKey = userData?.ghlApiKey;
+        if (apiKey) {
+          fetchAllContacts(apiKey);
+        } else {
+          console.warn("⚠️ No GHL API key found in Firestore for user.");
+          setLoading(false);
+        }
       }
     });
 
@@ -25,7 +34,7 @@ export default function ContactsPage() {
   }, []);
 
   const fetchAllContacts = async (apiKey: string) => {
-    const allContacts: any[] = [];
+    let allContacts: any[] = [];
     let nextPageUrl: string | null = "https://rest.gohighlevel.com/v1/contacts/";
 
     try {
@@ -38,8 +47,9 @@ export default function ContactsPage() {
         });
 
         const data = await res.json();
-        allContacts.push(...(data.contacts || []));
+        console.log("📥 GHL API Response:", data);
 
+        allContacts = [...allContacts, ...(data.contacts || [])];
         nextPageUrl = data.meta?.nextPageUrl || null;
       }
 
