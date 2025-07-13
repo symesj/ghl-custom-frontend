@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "@/firebase";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/app/components/Sidebar";
 
 export default function UserDashboard() {
   const [email, setEmail] = useState("");

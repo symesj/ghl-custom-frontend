@@ -1,5 +1,5 @@
 // app/(authenticated)/layout.tsx
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/app/components/Sidebar";
 
 export default function AuthenticatedLayout({
   children,
