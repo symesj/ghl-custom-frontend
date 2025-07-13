@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/navigation";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import { app } from "@/firebase";
 import Sidebar from "@/app/components/Sidebar";
 
 export default function UserDashboard() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [contacts, setContacts] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [recentAutomations, setRecentAutomations] = useState([]);
+
   const router = useRouter();
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -33,6 +38,9 @@ export default function UserDashboard() {
         const apiKey = userData.ghlApiKey;
         if (apiKey) {
           fetchContacts(apiKey);
+          fetchOpportunities(apiKey);
+          fetchAppointments(apiKey);
+          fetchAutomations(apiKey);
         }
       }
     });
@@ -47,21 +55,86 @@ export default function UserDashboard() {
         "Content-Type": "application/json",
       },
     });
-
     const data = await res.json();
-    console.log("📥 Contacts:", data);
+    setContacts(data.contacts || []);
+  };
+
+  const fetchOpportunities = async (apiKey: string) => {
+    const res = await fetch("https://rest.gohighlevel.com/v1/opportunities/", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    setOpportunities(data.opportunities || []);
+  };
+
+  const fetchAppointments = async (apiKey: string) => {
+    const res = await fetch("https://rest.gohighlevel.com/v1/appointments/", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    setAppointments(data.appointments || []);
+  };
+
+  const fetchAutomations = async (apiKey: string) => {
+    const res = await fetch("https://rest.gohighlevel.com/v1/workflows/executions/", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    const recent = data.executions?.slice(0, 5) || [];
+    setRecentAutomations(recent);
   };
 
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 bg-gray-900 text-white p-8">
-        <h1 className="text-3xl font-bold mb-4">Welcome, {name || "User"} 👋</h1>
-        <p className="text-gray-400">You're logged in as: <strong>{email}</strong></p>
+      <main className="flex-1 bg-gray-900 text-white p-8 overflow-y-auto">
+        <h1 className="text-3xl font-bold mb-2">Welcome, {name || "User"} 👋</h1>
+        <p className="text-gray-400 mb-6">You're logged in as: <strong>{email}</strong></p>
 
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="bg-gray-800 p-6 rounded shadow">🚧 Feature 1</div>
-          <div className="bg-gray-800 p-6 rounded shadow">📊 Analytics coming soon</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Contacts Panel */}
+          <div className="bg-gray-800 p-6 rounded shadow">
+            <h2 className="text-xl font-bold mb-2">📇 Contacts</h2>
+            <p className="text-gray-300 text-sm">Total: {contacts.length}</p>
+          </div>
+
+          {/* Opportunities Panel */}
+          <div className="bg-gray-800 p-6 rounded shadow">
+            <h2 className="text-xl font-bold mb-2">💼 Opportunities</h2>
+            <p className="text-gray-300 text-sm">Open: {opportunities.length}</p>
+          </div>
+
+          {/* Appointments Panel */}
+          <div className="bg-gray-800 p-6 rounded shadow">
+            <h2 className="text-xl font-bold mb-2">📅 Appointments</h2>
+            <p className="text-gray-300 text-sm">Upcoming: {appointments.length}</p>
+          </div>
+
+          {/* Automations Panel */}
+          <div className="bg-gray-800 p-6 rounded shadow col-span-1 sm:col-span-2">
+            <h2 className="text-xl font-bold mb-3">⚙️ Recent Automations</h2>
+            {recentAutomations.length > 0 ? (
+              <ul className="list-disc list-inside text-sm text-gray-300 space-y-1">
+                {recentAutomations.map((item: any, idx: number) => (
+                  <li key={idx}>
+                    {item.workflowName || "Unnamed Workflow"} –{" "}
+                    {new Date(item.createdAt).toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400">No recent automation activity found.</p>
+            )}
+          </div>
         </div>
       </main>
     </div>
