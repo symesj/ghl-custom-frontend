@@ -1,5 +1,5 @@
 // app/(authenticated)/layout.tsx
-import Sidebar from "../components/Sidebar"; // Trigger Vercel redeploy
+import Sidebar from "../components/Sidebar";
 
 export default function AuthenticatedLayout({
   children,
