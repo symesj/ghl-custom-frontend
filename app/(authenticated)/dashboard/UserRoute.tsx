@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { app } from "../../firebase";
+import { app } from "@/firebase";
 
 export default function UserRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
