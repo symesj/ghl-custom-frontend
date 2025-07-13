@@ -14,56 +14,45 @@ export default function ContactsPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(docRef);
+        const apiKey = userDoc.data()?.ghlApiKey;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      const apiKey = userDoc.data()?.ghlApiKey;
-
-      if (apiKey) {
-        const allContacts = await fetchAllContacts(apiKey);
-        setContacts(allContacts);
+        if (apiKey) {
+          const res = await fetch("https://rest.gohighlevel.com/v1/contacts/", {
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+          });
+          const data = await res.json();
+          setContacts(data.contacts);
+        }
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const fetchAllContacts = async (apiKey: string) => {
-    let all: any[] = [];
-    let nextPageToken = "";
-
-    do {
-      const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/?limit=100${nextPageToken ? `&nextPageToken=${nextPageToken}` : ""}`, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await res.json();
-      all.push(...data.contacts);
-      nextPageToken = data.nextPageToken || "";
-    } while (nextPageToken);
-
-    return all;
-  };
-
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <Sidebar />
       <main className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-6">📇 Contacts</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {contacts.map((contact) => (
-            <Link key={contact.id} href={`/contacts/${contact.id}`}>
-              <div className="bg-gray-800 p-4 rounded shadow hover:bg-gray-700 cursor-pointer">
-                <h2 className="text-lg font-semibold">{contact.name || "No Name"}</h2>
-                <p className="text-gray-400">{contact.email}</p>
-                <p className="text-gray-400">{contact.phone}</p>
-              </div>
-            </Link>
+        <ul className="space-y-4">
+          {contacts.map((c) => (
+            <li key={c.id} className="bg-gray-800 p-4 rounded shadow">
+              <Link href={`/contacts/${c.id}`}>
+                <div className="cursor-pointer">
+                  <div className="text-lg font-semibold">{c.name || "Unnamed"}</div>
+                  <div className="text-sm text-gray-400">{c.email || "No email"}</div>
+                  <div className="text-sm text-gray-400">{c.phone || "No phone"}</div>
+                </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </main>
     </div>
   );
