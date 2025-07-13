@@ -13,32 +13,24 @@ export default function ContactsPage() {
   const db = getFirestore(app);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const apiKey = userDoc.data()?.ghlApiKey;
-        if (apiKey) {
-          await fetchContacts(apiKey);
-          interval = setInterval(() => fetchContacts(apiKey), 30000); // refresh every 30s
-        }
+        if (apiKey) fetchAllContacts(apiKey);
       }
     });
 
-    return () => {
-      clearInterval(interval);
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
-  const fetchContacts = async (apiKey: string) => {
-    let allContacts: any[] = [];
+  const fetchAllContacts = async (apiKey: string) => {
+    const allContacts: any[] = [];
     let nextPageUrl: string | null = "https://rest.gohighlevel.com/v1/contacts/";
 
     try {
       while (nextPageUrl) {
-        const res = await fetch(nextPageUrl, {
+        const res: Response = await fetch(nextPageUrl, {
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
@@ -46,11 +38,11 @@ export default function ContactsPage() {
         });
 
         const data = await res.json();
-        allContacts = allContacts.concat(data.contacts || []);
+        allContacts.push(...(data.contacts || []));
+
         nextPageUrl = data.meta?.nextPageUrl || null;
       }
 
-      console.log("📥 Total Contacts Fetched:", allContacts.length);
       setContacts(allContacts);
     } catch (err) {
       console.error("❌ Failed to fetch contacts:", err);
@@ -74,9 +66,7 @@ export default function ContactsPage() {
                 className="bg-gray-800 p-4 rounded shadow flex justify-between"
               >
                 <div>
-                  <p className="font-semibold">
-                    {contact.firstName || contact.name || "No Name"}
-                  </p>
+                  <p className="font-semibold">{contact.name || "No Name"}</p>
                   <p className="text-gray-400 text-sm">{contact.email}</p>
                   <p className="text-gray-400 text-sm">{contact.phone}</p>
                 </div>

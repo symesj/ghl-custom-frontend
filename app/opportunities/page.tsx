@@ -14,23 +14,23 @@ import {
 
 // ✅ REAL Pipeline Stage IDs + Labels
 const stageMap: Record<string, string> = {
-  "VBLlssS1ZJKLCVG9nDkY": "1. Leads",
-  "J1xtrshb0WvfQ6bU5S9r": "2. Customer Items update",
-  "NWddjhqkylOnKDydEipD": "3. Shipping Quote",
-  "bQ48XnOIkMH69oKcA2oL": "4. Shipping Quote Complete",
-  "xG4nNgZfDnLMcHv2P3MH": "5. Quote Approval Pending",
-  "SCkJrA3SmLTYYR2ELQ7S": "6. Quote Approved",
+  VBLlssS1ZJKLCVG9nDkY: "1. Leads",
+  J1xtrshb0WvfQ6bU5S9r: "2. Customer Items update",
+  NWddjhqkylOnKDydEipD: "3. Shipping Quote",
+  bQ48XnOIkMH69oKcA2oL: "4. Shipping Quote Complete",
+  xG4nNgZfDnLMcHv2P3MH: "5. Quote Approval Pending",
+  SCkJrA3SmLTYYR2ELQ7S: "6. Quote Approved",
   "0YFVvXZhlW7pJQQbHj8m": "7. Currency Quote Required",
-  "EY5ZBS2zJ2QuBTIF3MT4": "7.1 Irregularities",
-  "c5WjCyBe9Z5lDBovp3r3": "8. Quote",
-  "UFLUZVhJDzRxrmcRjQBg": "9. Follow up",
+  EY5ZBS2zJ2QuBTIF3MT4: "7.1 Irregularities",
+  c5WjCyBe9Z5lDBovp3r3: "8. Quote",
+  UFLUZVhJDzRxrmcRjQBg: "9. Follow up",
   "2qZXtyCBYTRTSJAMaRIp": "9.1 Multi Opportunities",
-  "whAnUNijYbkzQlQYi1qs": "9.2 CHASE by phone",
-  "Z4X8FbovUnxU5dAE9qMr": "10. Money Transfer",
+  whAnUNijYbkzQlQYi1qs: "9.2 CHASE by phone",
+  Z4X8FbovUnxU5dAE9qMr: "10. Money Transfer",
   "8xmdpOdKJ7a7abY7xSGz": "11. Order for Dispatch",
-  "SyoGg6c71k2ErPGpFex6": "12. Dispatched",
+  SyoGg6c71k2ErPGpFex6: "12. Dispatched",
   "9mXSwFoF6aEBSByYjMOn": "13. In Transit",
-  "CFVhMEFVmXilG8nIpZKu": "14. Exceptions",
+  CFVhMEFVmXilG8nIpZKu: "14. Exceptions",
   "5SBqtXfpw1TXttEv4gdv": "15. Delivered",
 };
 
@@ -46,7 +46,6 @@ export default function OpportunitiesPage() {
       if (user) {
         const docRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(docRef);
-
         const apiKey = userDoc.data()?.ghlApiKey;
         if (apiKey) fetchOpportunities(apiKey);
       }
@@ -55,22 +54,52 @@ export default function OpportunitiesPage() {
     return () => unsubscribe();
   }, []);
 
+  // 🔁 Auto-refresh every 60s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const user = auth.currentUser;
+      if (!user) return;
+      getDoc(doc(db, "users", user.uid)).then((userDoc) => {
+        const apiKey = userDoc.data()?.ghlApiKey;
+        if (apiKey) fetchOpportunities(apiKey);
+      });
+    }, 60000); // every 60 sec
+
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchOpportunities = async (apiKey: string) => {
     try {
-      const res = await fetch("https://rest.gohighlevel.com/v1/opportunities/", {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await res.json();
+      let allOpportunities: any[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const res = await fetch(
+          `https://rest.gohighlevel.com/v1/opportunities/?limit=100&page=${page}`,
+          {
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await res.json();
+        if (data.opportunities?.length) {
+          allOpportunities = [...allOpportunities, ...data.opportunities];
+          page += 1;
+        } else {
+          hasMore = false;
+        }
+      }
 
       const groupedData: Record<string, any[]> = {};
       for (const stageId of Object.keys(stageMap)) {
         groupedData[stageId] = [];
       }
 
-      data.opportunities.forEach((opp: any) => {
+      allOpportunities.forEach((opp: any) => {
         const stage = opp.stageId;
         if (!groupedData[stage]) groupedData[stage] = [];
         groupedData[stage].push(opp);
@@ -132,7 +161,6 @@ export default function OpportunitiesPage() {
       <Sidebar />
       <main className="flex-1 p-8 overflow-x-auto">
         <h1 className="text-3xl font-bold mb-6">🧲 Opportunities Pipeline</h1>
-
         {loading ? (
           <p>Loading...</p>
         ) : (
