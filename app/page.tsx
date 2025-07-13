@@ -13,14 +13,13 @@ import {
 } from "firebase/auth";
 
 // 💥 Fix for SSR issue with Lottie
-const Player = dynamic(() =>
-  import("@lottiefiles/react-lottie-player").then(mod => mod.Player), { ssr: false }
+const Player = dynamic(
+  () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+  { ssr: false }
 );
-
 
 export default function HomePage() {
   const provider = new GoogleAuthProvider();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -34,16 +33,15 @@ export default function HomePage() {
     }
   };
 
- const loginWithEmail = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    alert("✅ Logged in!");
-    router.push("/dashboard"); // or wherever you want to send the user
-  } catch (error) {
-    console.error("❌ Email login error:", error);
-  }
-};
-
+  const loginWithEmail = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("✅ Logged in!");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("❌ Email login error:", error);
+    }
+  };
 
   const signupWithEmail = async () => {
     try {
@@ -64,16 +62,6 @@ export default function HomePage() {
         height={60}
         className="mb-8"
         priority
-      />
-
-      {/* Animation */}
-      {/* @ts-ignore */}
-      <Player
-        autoplay
-        loop
-        src="/butler.json"
-        style={{ height: "300px", width: "300px" }}
-        className="mb-6 animate-fade-in"
       />
 
       {/* Title */}
@@ -124,6 +112,16 @@ export default function HomePage() {
       >
         Contact Sales
       </a>
+
+      {/* 🧠 Butler Animation UNDER form */}
+      {/* @ts-ignore */}
+      <Player
+        autoplay
+        loop
+        src="/butler.json"
+        style={{ height: "300px", width: "300px" }}
+        className="mt-10 animate-fade-in"
+      />
 
       {/* Background Glow */}
       <div className="absolute -z-10 w-[500px] h-[500px] rounded-full bg-pink-600 blur-3xl opacity-20 top-10 left-20 animate-pulse"></div>
