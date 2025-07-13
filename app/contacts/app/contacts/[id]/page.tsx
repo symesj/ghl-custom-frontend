@@ -1,6 +1,5 @@
-// app/contacts/[id]/page.tsx
-
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -47,7 +46,9 @@ export default function ContactDetailPage() {
             <div><strong>Name:</strong> {contact.name}</div>
             <div><strong>Email:</strong> {contact.email}</div>
             <div><strong>Phone:</strong> {contact.phone}</div>
-            {/* 🔧 Add more fields as needed */}
+            <div><strong>Company:</strong> {contact.companyName}</div>
+            <div><strong>Address:</strong> {contact.address1}</div>
+            {/* Add more editable fields here */}
           </div>
         ) : (
           <p>Loading...</p>
