@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -22,6 +23,7 @@ export default function HomePage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleGoogleLogin = async () => {
     try {
@@ -32,14 +34,16 @@ export default function HomePage() {
     }
   };
 
-  const loginWithEmail = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("✅ Logged in!");
-    } catch (error) {
-      console.error("❌ Email login error:", error);
-    }
-  };
+ const loginWithEmail = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("✅ Logged in!");
+    router.push("/dashboard"); // or wherever you want to send the user
+  } catch (error) {
+    console.error("❌ Email login error:", error);
+  }
+};
+
 
   const signupWithEmail = async () => {
     try {

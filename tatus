@@ -1,0 +1,15 @@
+* [33m5d856c2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m  Add Contacts Page with GHL fetch & logging
+* [33m355bb60[m 🚀 Added Contacts and Opportunities pages
+* [33m55fb2fb[m ✅ Add contact detail route + fix opportunities visibility
+* [33m9c4227d[m ✅ Ensure opportunities page and contact detail route works
+* [33mf726e01[m ✅ Restore Opportunities, fix Contacts route + detail page
+* [33m43411e3[m 👤 Replaced Users with Contacts + full contact details page
+* [33ma0d02f4[m 🚀 Add drag-and-drop Opportunities pipeline with real stage mapping
+* [33m7f701f5[m ✨ Add search + pagination to contacts page
+* [33mceaf532[m 🚀 Display GHL contacts on /users page
+* [33m7035d41[m ✅ Add /users and /charts placeholder pages
+* [33mca9e8fb[m 🎯 Fix dashboard Firestore + GHL contact sync
+* [33mf1cff56[m 🔥 Hooked up dashboard to Firebase user data
+* [33m3fae7e3[m fix: restore real dashboard and login separation
+* [33ma5f3048[m Trigger deploy
+* [33m2b13e4f[m 🚀 Push login + dashboard routing updates
