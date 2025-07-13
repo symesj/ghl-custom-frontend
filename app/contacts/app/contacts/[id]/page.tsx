@@ -1,5 +1,6 @@
-"use client";
+// app/contacts/[id]/page.tsx
 
+"use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -10,45 +11,47 @@ import Sidebar from "@/app/components/Sidebar";
 export default function ContactDetailPage() {
   const { id } = useParams();
   const [contact, setContact] = useState<any>(null);
+
   const auth = getAuth(app);
   const db = getFirestore(app);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const apiKey = userDoc.data()?.ghlApiKey;
+        if (!apiKey) return;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      const apiKey = userDoc.data()?.ghlApiKey;
+        const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${id}`, {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${id}`, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await res.json();
-      setContact(data.contact);
+        const data = await res.json();
+        setContact(data.contact || {});
+      }
     });
 
     return () => unsub();
   }, [id]);
 
-  if (!contact) return <div className="text-white p-8">Loading...</div>;
-
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <Sidebar />
-      <main className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-4">{contact.name || "Unnamed Contact"}</h1>
-        <div className="space-y-2">
-          <p><strong>Email:</strong> {contact.email}</p>
-          <p><strong>Phone:</strong> {contact.phone}</p>
-          <p><strong>Company:</strong> {contact.companyName}</p>
-          <p><strong>Location:</strong> {contact.locationId}</p>
-          <p><strong>Status:</strong> {contact.contactStatus}</p>
-          <p><strong>Tags:</strong> {contact.tags?.join(", ") || "None"}</p>
-        </div>
+      <main className="p-8 flex-1">
+        <h1 className="text-2xl font-bold mb-4">Contact Detail</h1>
+        {contact ? (
+          <div className="space-y-2">
+            <div><strong>Name:</strong> {contact.name}</div>
+            <div><strong>Email:</strong> {contact.email}</div>
+            <div><strong>Phone:</strong> {contact.phone}</div>
+            {/* 🔧 Add more fields as needed */}
+          </div>
+        ) : (
+          <p>Loading...</p>
+        )}
       </main>
     </div>
   );
