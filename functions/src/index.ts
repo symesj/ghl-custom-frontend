@@ -2,18 +2,21 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
-const db = admin.firestore();
 
 export const createUserProfile = functions.auth.user().onCreate(async (user) => {
+  const db = admin.firestore();
+
+  const defaultSubaccountId = "fastline-main"; // ✅ Change if you want to assign differently later
+
   const userRef = db.collection("users").doc(user.uid);
 
-  const defaultData = {
-    email: user.email || "",
+  await userRef.set({
+    name: user.displayName || "Unnamed User",
+    email: user.email,
     role: "user",
-    subaccountId: "", // You can pre-fill based on logic if needed
-    ghlApiKey: "",     // Optional, can be updated later
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  };
+    subaccountId: defaultSubaccountId, // 🔥 Assigned here
+  });
 
-  await userRef.set(defaultData);
+  console.log(`✅ User ${user.email} created in Firestore with subaccount ${defaultSubaccountId}`);
 });
