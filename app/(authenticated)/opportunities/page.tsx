@@ -158,7 +158,7 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-      <Sidebar />
+      <Sidebar role="user" onLogoutAction={() => {}} />
       <main className="flex-1 p-8 overflow-x-auto">
         <h1 className="text-3xl font-bold mb-6">🧲 Opportunities Pipeline</h1>
         {loading ? (
