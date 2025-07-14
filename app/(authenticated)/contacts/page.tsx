@@ -63,7 +63,7 @@ export default function ContactsPage() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar role="user" onLogoutAction={() => {}} />
       <main className="flex-1 p-8 bg-gray-900 text-white">
         <h1 className="text-3xl font-bold mb-6">📇 Contacts</h1>
         {loading ? (
