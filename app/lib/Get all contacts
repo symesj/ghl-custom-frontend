@@ -1,0 +1,63 @@
+// 🔹 Reusable fetch helper for GHL API
+async function fetchFromGHL(
+  endpoint: string,
+  apiKey: string,
+  method: string = "GET",
+  body?: any
+) {
+  try {
+    const res = await fetch(`https://rest.gohighlevel.com/v1/${endpoint}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      throw new Error(`GHL fetch failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error('❌ fetchFromGHL error:', err);
+    return null;
+  }
+}
+
+// 🔹 Get all contacts
+export const getAllContacts = async (apiKey: string) => {
+  const data = await fetchFromGHL("contacts", apiKey);
+  return data?.contacts || [];
+};
+
+// 🔹 Get one contact
+export const getContactById = async (id: string, apiKey: string) => {
+  const data = await fetchFromGHL(`contacts/${id}`, apiKey);
+  return data?.contact || null;
+};
+
+// 🔹 Get opportunities
+export const getAllOpportunities = async (apiKey: string) => {
+  const data = await fetchFromGHL("opportunities", apiKey);
+  return data?.opportunities || [];
+};
+
+// 🔹 Update opportunity stage
+export const updateOpportunityStage = async (
+  id: string,
+  stageId: string,
+  apiKey: string
+) => {
+  return await fetchFromGHL(`opportunities/${id}`, apiKey, "PATCH", {
+    stageId,
+  });
+};
+
+// 🔹 Get calendars
+export const getCalendars = async (apiKey: string) => {
+  const data = await fetchFromGHL("locations/calendars", apiKey);
+  return data?.calendars || [];
+};

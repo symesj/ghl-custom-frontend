@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "@/firebase";
-import Sidebar from "@/app/components/Sidebar";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import Sidebar from "@/components/Sidebar";
 
 // ✅ REAL Pipeline Stage IDs + Labels
 const stageMap: Record<string, string> = {

@@ -1,6 +1,5 @@
 "use client";
 
-import Sidebar from "@/app/components/Sidebar";
 import { useEffect, useState } from "react";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
@@ -55,7 +54,6 @@ export default function DashboardPage() {
 
       const data = await res.json();
 
-      // ✅ Normalize contacts with fallbacks
       const normalizedContacts = (data.contacts || []).map((c: any) => ({
         id: c.id,
         firstName: c.firstName || "",
@@ -72,32 +70,30 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar role={role} onLogoutAction={handleLogoutAction} />
+    <main className="flex-1 bg-gray-900 text-white p-6 overflow-y-auto">
+      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+      <p className="text-gray-400 mb-6">Subaccount: {subaccountId || "N/A"}</p>
 
-      <main className="flex-1 bg-gray-900 text-white p-6 overflow-y-auto">
-        <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-        <p className="text-gray-400 mb-6">Subaccount: {subaccountId || "N/A"}</p>
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {contacts.length > 0 ? (
-              contacts.map((contact: any) => (
-                <div key={contact.id} className="bg-gray-800 p-4 rounded shadow">
-                  <h3 className="text-lg font-bold">
-                    {`${contact.firstName} ${contact.lastName}`.trim() || contact.email || "Unnamed"}
-                  </h3>
-                  <p className="text-sm text-gray-400">{contact.email}</p>
-                </div>
-              ))
-            ) : (
-              <p>No contacts found.</p>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {contacts.length > 0 ? (
+            contacts.map((contact: any) => (
+              <div key={contact.id} className="bg-gray-800 p-4 rounded shadow">
+                <h3 className="text-lg font-bold">
+                  {`${contact.firstName} ${contact.lastName}`.trim() ||
+                    contact.email ||
+                    "Unnamed"}
+                </h3>
+                <p className="text-sm text-gray-400">{contact.email}</p>
+              </div>
+            ))
+          ) : (
+            <p>No contacts found.</p>
+          )}
+        </div>
+      )}
+    </main>
   );
 }

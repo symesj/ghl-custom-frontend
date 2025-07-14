@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { app } from "../../firebase";
+import { app } from "../firebase";
 
 type AuthContextType = {
   email: string;

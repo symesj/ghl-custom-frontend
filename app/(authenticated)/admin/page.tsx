@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "@/firebase";
 
-import UserStats from "@/app/components/UserStats";
-import UserActivityFeed from "@/app/components/UserActivityFeed";
-import SystemLogs from "@/app/components/SystemLogs";
+import UserStats from "@/components/UserStats";
+import UserActivityFeed from "@/components/UserActivityFeed";
+import SystemLogs from "@/components/SystemLogs";
 
 export default function AdminDashboard() {
   const [email, setEmail] = useState("");

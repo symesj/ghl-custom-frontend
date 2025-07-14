@@ -15,7 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./app/*"] // ✅ FIXED: now aliases @/lib/ghlApi to app/lib/ghlApi
     },
     "typeRoots": ["./types", "./node_modules/@types"],
     "plugins": [
