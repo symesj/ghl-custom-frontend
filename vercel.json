@@ -1,3 +1,4 @@
 {
-  "ignoreCommand": "echo Skipping Firebase Functions folder"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
 }

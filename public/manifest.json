@@ -1,15 +1,20 @@
 {
   "name": "Fast AI Boss",
-  "short_name": "FastAI",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "short_name": "FastAIBoss",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#121212",
+  "background_color": "#121212"
 }
