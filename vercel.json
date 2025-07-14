@@ -1,6 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "build": {
-    "ignore": ["functions/**"]
-  }
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./app ./public ./pages ./components ./styles ./next.config.js ./tailwind.config.js"
 }
