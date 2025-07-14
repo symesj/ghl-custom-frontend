@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { app } from '@/firebase';
-import Sidebar from '@/components/Sidebar';
 import {
   fetchNotesForContact,
   fetchTasks,
@@ -28,7 +27,9 @@ interface Note {
 }
 
 export default function ContactDetailsPage() {
-  const { id: contactId } = useParams();
+  const params = useParams();
+  const contactId = params?.id as string;
+
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -43,34 +44,48 @@ export default function ContactDetailsPage() {
   useEffect(() => {
     const fetchData = async () => {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user || !contactId) {
+        console.warn("⛔ No user or contact ID");
+        return;
+      }
 
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(db, "users", user.uid));
       const data = userDoc.data();
-      setRole(data?.role || 'user');
+      const apiKey = data?.ghlApiKey;
 
-      // 🔁 Fetch Contact
+      if (!apiKey) {
+        console.error("❌ Missing GHL API Key.");
+        return;
+      }
+
+      setRole(data?.role || "user");
+
       const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_GHL_API_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
         },
       });
+
+      if (!res.ok) {
+        console.error("❌ Contact fetch failed:", res.status);
+        return;
+      }
 
       const contactData = await res.json();
       setContact(contactData.contact);
       setForm(contactData.contact);
 
-      // 🔁 Notes & Tasks
-      const notesData = await fetchNotesForContact(contactId as string);
-      const allTasks = await fetchTasks();
+      const notesData = await fetchNotesForContact(contactId, apiKey);
+      const allTasks = await fetchTasks(apiKey);
       const filteredTasks = allTasks.filter((t: Task) => t.contactId === contactId);
 
       setNotes(notesData);
       setTasks(filteredTasks);
     };
 
-    onAuthStateChanged(auth, fetchData);
+    const unsubscribe = onAuthStateChanged(auth, () => fetchData());
+    return () => unsubscribe();
   }, [contactId]);
 
   const handleUpdate = async () => {
@@ -94,24 +109,34 @@ export default function ContactDetailsPage() {
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
-    await createNoteForContact(contactId as string, newNote);
-    const updatedNotes = await fetchNotesForContact(contactId as string);
+
+    const user = auth.currentUser;
+    const userDoc = await getDoc(doc(db, 'users', user!.uid));
+    const apiKey = userDoc.data()?.ghlApiKey;
+
+    await createNoteForContact(contactId, newNote, apiKey);
+    const updatedNotes = await fetchNotesForContact(contactId, apiKey);
     setNotes(updatedNotes);
     setNewNote('');
   };
 
   const handleAddTask = async () => {
     if (!newTask.trim()) return;
-    await createTaskForContact(contactId as string, newTask);
-    const allTasks = await fetchTasks();
+
+    const user = auth.currentUser;
+    const userDoc = await getDoc(doc(db, 'users', user!.uid));
+    const apiKey = userDoc.data()?.ghlApiKey;
+
+    await createTaskForContact(contactId, newTask, apiKey);
+    const allTasks = await fetchTasks(apiKey);
     const filteredTasks = allTasks.filter((t: Task) => t.contactId === contactId);
+
     setTasks(filteredTasks);
     setNewTask('');
   };
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-      <Sidebar role={role} onLogoutAction={() => {}} />
       <main className="flex-1 p-8">
         <Link href="/contacts" className="text-blue-400 underline mb-6 inline-block">
           ← Back to Contacts
@@ -153,7 +178,7 @@ export default function ContactDetailsPage() {
           <p>Loading contact...</p>
         )}
 
-        {/* 📝 Notes Section */}
+        {/* 📝 Notes */}
         <h2 className="text-2xl font-bold mt-10 mb-4">📝 Notes</h2>
         <div className="space-y-3 mb-6">
           <textarea
@@ -186,7 +211,7 @@ export default function ContactDetailsPage() {
           <p className="text-gray-400">No notes found.</p>
         )}
 
-        {/* ✅ Tasks Section */}
+        {/* ✅ Tasks */}
         <h2 className="text-2xl font-bold mt-10 mb-4">✅ Tasks</h2>
         <div className="space-y-3 mb-6">
           <input

@@ -1,10 +1,10 @@
-const GHL_API_KEY = process.env.GHL_API_KEY!;
+const GHL_API_KEY = process.env.GHL_API_KEY as string;
 
-export async function fetchNotesForContact(contactId: string) {
+export async function fetchNotesForContact(contactId: string, apiKey = GHL_API_KEY) {
   try {
     const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}/notes`, {
       headers: {
-        Authorization: `Bearer ${GHL_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -17,15 +17,11 @@ export async function fetchNotesForContact(contactId: string) {
   }
 }
 
-export async function fetchTasks(contactId?: string) {
+export async function fetchTasks(apiKey = GHL_API_KEY) {
   try {
-    const url = contactId
-      ? `https://rest.gohighlevel.com/v1/tasks?contactId=${contactId}`
-      : `https://rest.gohighlevel.com/v1/tasks`;
-
-    const res = await fetch(url, {
+    const res = await fetch(`https://rest.gohighlevel.com/v1/tasks`, {
       headers: {
-        Authorization: `Bearer ${GHL_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -38,12 +34,12 @@ export async function fetchTasks(contactId?: string) {
   }
 }
 
-export async function createNoteForContact(contactId: string, body: string) {
+export async function createNoteForContact(contactId: string, body: string, apiKey = GHL_API_KEY) {
   try {
     await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}/notes`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${GHL_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ body }),
@@ -53,12 +49,12 @@ export async function createNoteForContact(contactId: string, body: string) {
   }
 }
 
-export async function createTaskForContact(contactId: string, title: string) {
+export async function createTaskForContact(contactId: string, title: string, apiKey = GHL_API_KEY) {
   try {
     await fetch(`https://rest.gohighlevel.com/v1/tasks`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${GHL_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
