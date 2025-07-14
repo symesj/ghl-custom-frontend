@@ -33,7 +33,7 @@ export default function DashboardPage() {
         const data = docSnap.data();
         setRole(data.role || "user");
         setSubaccountId(data.subaccountId || "");
-        fetchContacts(data.ghlApiKey); // optional
+        fetchContacts(data.ghlApiKey);
       } else {
         router.push("/login");
       }
@@ -54,7 +54,16 @@ export default function DashboardPage() {
       });
 
       const data = await res.json();
-      setContacts(data.contacts || []);
+
+      // ✅ Normalize contacts with fallbacks
+      const normalizedContacts = (data.contacts || []).map((c: any) => ({
+        id: c.id,
+        firstName: c.firstName || "",
+        lastName: c.lastName || "",
+        email: c.email || "",
+      }));
+
+      setContacts(normalizedContacts);
     } catch (err) {
       console.error("Failed to fetch contacts", err);
     } finally {
@@ -77,7 +86,9 @@ export default function DashboardPage() {
             {contacts.length > 0 ? (
               contacts.map((contact: any) => (
                 <div key={contact.id} className="bg-gray-800 p-4 rounded shadow">
-                  <h3 className="text-lg font-bold">{contact.name || "Unnamed"}</h3>
+                  <h3 className="text-lg font-bold">
+                    {`${contact.firstName} ${contact.lastName}`.trim() || contact.email || "Unnamed"}
+                  </h3>
                   <p className="text-sm text-gray-400">{contact.email}</p>
                 </div>
               ))

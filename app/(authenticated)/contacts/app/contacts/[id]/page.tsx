@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
@@ -11,6 +12,8 @@ export default function ContactDetailsPage() {
   const { id } = useParams();
   const [contact, setContact] = useState<any>(null);
   const [form, setForm] = useState<any>({});
+  const [role, setRole] = useState<"admin" | "user">("user");
+
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -20,7 +23,9 @@ export default function ContactDetailsPage() {
       if (!user) return;
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      const apiKey = userDoc.data()?.ghlApiKey;
+      const data = userDoc.data();
+      const apiKey = data?.ghlApiKey;
+      setRole(data?.role || "user");
 
       const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${id}`, {
         headers: {
@@ -28,9 +33,10 @@ export default function ContactDetailsPage() {
           "Content-Type": "application/json",
         },
       });
-      const data = await res.json();
-      setContact(data.contact);
-      setForm(data.contact);
+
+      const contactData = await res.json();
+      setContact(contactData.contact);
+      setForm(contactData.contact);
     };
 
     onAuthStateChanged(auth, fetchData);
@@ -56,11 +62,16 @@ export default function ContactDetailsPage() {
   };
 
   return (
-  <div className="flex min-h-screen bg-gray-900 text-white">
-    <Sidebar role="user" onLogoutAction={() => {}} />
-    <main className="flex-1 p-8">
-      ...
+    <div className="flex min-h-screen bg-gray-900 text-white">
+      <Sidebar role={role} onLogoutAction={() => {}} />
+
+      <main className="flex-1 p-8">
+        <Link href="/contacts" className="text-blue-400 underline mb-6 inline-block">
+          ← Back to Contacts
+        </Link>
+
         <h1 className="text-3xl font-bold mb-6">👤 Contact Details</h1>
+
         {contact ? (
           <div className="space-y-4 max-w-xl">
             <input
@@ -70,6 +81,7 @@ export default function ContactDetailsPage() {
               className="w-full p-2 text-black rounded"
               placeholder="Name"
             />
+
             <input
               type="email"
               value={form.email || ""}
@@ -77,6 +89,7 @@ export default function ContactDetailsPage() {
               className="w-full p-2 text-black rounded"
               placeholder="Email"
             />
+
             <input
               type="text"
               value={form.phone || ""}
@@ -84,6 +97,7 @@ export default function ContactDetailsPage() {
               className="w-full p-2 text-black rounded"
               placeholder="Phone"
             />
+
             <button
               onClick={handleUpdate}
               className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
