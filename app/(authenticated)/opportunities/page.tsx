@@ -149,7 +149,7 @@ export default function OpportunitiesPage() {
         body: JSON.stringify({ stageId: destStage }),
       });
 
-      console.log("✅ Opportunity stage updated in GoHighLevel");
+      console.log("✅ Opportunity pipeline stage updated in GoHighLevel");
     } catch (err) {
       console.error("❌ Failed to update stage in GHL:", err);
       alert("Failed to update opportunity stage in GoHighLevel.");
