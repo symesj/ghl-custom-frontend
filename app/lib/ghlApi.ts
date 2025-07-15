@@ -17,6 +17,23 @@ export async function fetchNotesForContact(contactId: string, apiKey = GHL_API_K
   }
 }
 
+export async function fetchOpportunities(apiKey: string) {
+  try {
+    const res = await fetch('https://rest.gohighlevel.com/v1/opportunities/', {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    return data.opportunities || [];
+  } catch (err) {
+    console.error('❌ Failed to fetch opportunities:', err);
+    return [];
+  }
+}
+
 export async function fetchTasks(apiKey = GHL_API_KEY) {
   try {
     const res = await fetch(`https://rest.gohighlevel.com/v1/tasks`, {
@@ -65,5 +82,37 @@ export async function createTaskForContact(contactId: string, title: string, api
     });
   } catch (err) {
     console.error('❌ Failed to create task:', err);
+  }
+}
+
+// ✅ New: Get ALL contacts (with pagination)
+export async function getAllContacts(apiKey = GHL_API_KEY) {
+  let allContacts: any[] = [];
+  let page = 1;
+  let hasMore = true;
+
+  try {
+    while (hasMore) {
+      const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/?limit=100&page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.contacts?.length) {
+        allContacts.push(...data.contacts);
+        page++;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allContacts;
+  } catch (err) {
+    console.error('❌ Failed to fetch all contacts:', err);
+    return [];
   }
 }

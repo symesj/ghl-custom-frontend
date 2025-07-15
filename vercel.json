@@ -1,3 +1,9 @@
 {
-  "build": {}
+  "build": {},
+  "cron": [
+    {
+      "path": "/api/sync-contacts?token=your_super_secret_token",
+      "schedule": "*/30 * * * *"
+    }
+  ]
 }

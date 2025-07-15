@@ -1,135 +1,122 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { app } from '@/firebase';
+import ContactModal from '@/components/ContactModal';
+import dynamic from 'next/dynamic';
 
-const ContactDetailsPage = () => {
-  const { id: contactId } = useParams();
+// Lazy load the contact details component
+const ContactDetails = dynamic(() => import('@/components/ContactDetails'), { ssr: false });
 
-  const [newNote, setNewNote] = useState('');
-  const [notes, setNotes] = useState<any[]>([]);
-  const [newTask, setNewTask] = useState('');
-  const [tasks, setTasks] = useState<any[]>([]);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // Fetch Notes
+export default function ContactListPage() {
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [toast, setToast] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!contactId) return;
-    const fetchNotes = async () => {
-      const res = await fetch(`/api/ghl/notes?contactId=${contactId}`);
-      const data = await res.json();
-      setNotes(data.notes || []);
-    };
-    fetchNotes();
-  }, [contactId]);
-
-  // Fetch Tasks
-  useEffect(() => {
-    if (!contactId) return;
-    const fetchTasks = async () => {
-      const res = await fetch(`/api/ghl/tasks?contactId=${contactId}`);
-      const data = await res.json();
-      setTasks(data.tasks || []);
-    };
-    fetchTasks();
-  }, [contactId]);
-
-  // Add Note
-  const handleAddNote = async () => {
-    if (!newNote.trim()) return;
-    await fetch(`/api/ghl/notes/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contactId, body: newNote }),
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const key = userDoc.data()?.ghlApiKey;
+      setApiKey(key);
+      if (key) fetchContacts(key);
     });
-    setNewNote('');
-    const res = await fetch(`/api/ghl/notes?contactId=${contactId}`);
-    const data = await res.json();
-    setNotes(data.notes || []);
-  };
+  }, []);
 
-  // Add Task
-  const handleAddTask = async () => {
-    if (!newTask.trim()) return;
-    await fetch(`/api/ghl/tasks/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contactId, title: newTask }),
-    });
-    setNewTask('');
-    const res = await fetch(`/api/ghl/tasks?contactId=${contactId}`);
-    const data = await res.json();
-    setTasks(data.tasks || []);
+  const fetchContacts = async (key: string) => {
+    setLoading(true);
+    try {
+      let allContacts: any[] = [];
+      let nextPageUrl = 'https://rest.gohighlevel.com/v1/contacts?limit=100';
+
+      while (nextPageUrl) {
+        const res = await fetch(nextPageUrl, {
+          headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        const data = await res.json();
+
+        allContacts = [...allContacts, ...(data.contacts || [])];
+        nextPageUrl = data.meta?.nextPageUrl || '';
+      }
+
+      setContacts(allContacts);
+      setToast(`✅ ${allContacts.length} contacts loaded successfully`);
+    } catch (err) {
+      console.error('Failed to fetch contacts', err);
+      setToast('❌ Failed to load contacts');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   return (
-    <div className="p-6">
-      {/* 📝 Notes Section */}
-      <h2 className="text-2xl font-bold mt-10 mb-4">📝 Notes</h2>
+    <div className="p-6 relative">
+      <h1 className="text-3xl font-bold mb-6">📇 Contacts</h1>
 
-      <div className="space-y-3 mb-6">
-        <textarea
-          rows={3}
-          className="w-full p-2 text-black rounded"
-          placeholder="Add new note..."
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-        />
+      {/* Refresh Button */}
+      <div className="mb-4 flex justify-end">
         <button
-          onClick={handleAddNote}
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+          onClick={() => apiKey && fetchContacts(apiKey)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold shadow disabled:opacity-50"
+          disabled={loading}
         >
-          ➕ Add Note
+          {loading ? 'Refreshing...' : '🔄 Refresh'}
         </button>
       </div>
 
-      {notes.length > 0 ? (
-        <ul className="space-y-3">
-          {notes.map((note: any) => (
-            <li key={note.id} className="bg-gray-800 p-3 rounded shadow">
-              <p className="text-sm text-gray-300">{note.body}</p>
-              <p className="text-xs text-gray-500 text-right">
-                {new Date(note.createdAt).toLocaleString()}
-              </p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-400">No notes found.</p>
+      {/* Spinner Overlay */}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 z-10">
+          <div className="border-4 border-blue-500 border-t-transparent animate-spin rounded-full w-12 h-12" />
+        </div>
       )}
 
-      {/* ✅ Tasks Section */}
-      <h2 className="text-2xl font-bold mt-10 mb-4">✅ Tasks</h2>
+      {/* Toast Message */}
+      {toast && (
+        <div className="fixed top-4 right-4 bg-gray-900 text-white px-4 py-2 rounded shadow z-50">
+          {toast}
+        </div>
+      )}
 
-      <div className="space-y-3 mb-6">
-        <input
-          type="text"
-          className="w-full p-2 text-black rounded"
-          placeholder="New task title..."
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-        <button
-          onClick={handleAddTask}
-          className="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700"
-        >
-          ➕ Add Task
-        </button>
+      {/* Contacts Grid */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {contacts.map((contact) => (
+          <div
+            key={contact.id}
+            onClick={() => setSelectedContactId(contact.id)}
+            className="bg-gray-800 p-4 rounded cursor-pointer hover:bg-gray-700"
+          >
+            <p className="text-lg font-semibold">
+              {contact.firstName} {contact.lastName}
+            </p>
+            <p className="text-sm text-gray-400">{contact.email}</p>
+            <p className="text-sm text-gray-400">{contact.phone}</p>
+          </div>
+        ))}
       </div>
 
-      {tasks.length > 0 ? (
-        <ul className="space-y-3">
-          {tasks.map((task: any) => (
-            <li key={task.id} className="bg-gray-800 p-3 rounded shadow">
-              <p className="font-semibold">{task.title}</p>
-              <p className="text-sm text-gray-400">{task.status}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-400">No tasks found.</p>
-      )}
+      {/* Contact Detail Modal */}
+      <ContactModal
+        isOpen={!!selectedContactId}
+        onCloseAction={() => setSelectedContactId(null)}
+        contactId={selectedContactId ?? ''}
+        ContactDetailComponent={
+          selectedContactId && apiKey ? <ContactDetails contactId={selectedContactId} apiKey={apiKey} /> : <></>
+        }
+      />
     </div>
   );
-};
-
-export default ContactDetailsPage;
+}
