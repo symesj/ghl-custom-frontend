@@ -5,6 +5,7 @@ import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { app } from "@/firebase";
+
 import DashboardStats from "@/components/DashboardStats";
 import OpportunityStats from "@/components/OpportunityStats"; // if you've split it
 
@@ -15,6 +16,7 @@ export default function DashboardPage() {
 
   const [role, setRole] = useState<"admin" | "user">("user");
   const [subaccountId, setSubaccountId] = useState("");
+  const [subaccountName, setSubaccountName] = useState("N/A");
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,6 +36,7 @@ export default function DashboardPage() {
         const data = docSnap.data();
         setRole(data.role || "user");
         setSubaccountId(data.subaccountId || "");
+        setSubaccountName(data.subAccountName || "N/A");
         fetchContacts(data.ghlApiKey);
       } else {
         router.push("/login");
@@ -73,8 +76,10 @@ export default function DashboardPage() {
 
   return (
     <main className="flex-1 bg-gray-900 text-white p-6 overflow-y-auto">
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-gray-400 mb-6">Subaccount: {subaccountId || "N/A"}</p>
+      <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
+      <p className="text-gray-400 text-sm mb-6">
+        Subaccount: {subaccountName}
+      </p>
 
       <DashboardStats />
       <div className="my-6" />
