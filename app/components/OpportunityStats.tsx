@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchOpportunities } from 'app\lib\ghl.ts';
+import { fetchOpportunities } from '@/lib/ghl';
 import { getAuth } from 'firebase/auth';
-import { fetchOpportunities } from "@/lib/ghl";
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { app } from '@/firebase';
 
 export default function OpportunityStats() {
@@ -20,7 +20,6 @@ export default function OpportunityStats() {
 
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const apiKey = userDoc.data()?.ghlApiKey;
-
       if (!apiKey) return;
 
       const data = await fetchOpportunities(apiKey);
