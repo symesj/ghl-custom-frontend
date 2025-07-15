@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "functions": {
-    "api/sync-contacts.ts": {
-      "runtime": "nodejs18.x",
-      "schedule": "*/30 * * * *"
-    }
-  }
+  "version": 2
 }
