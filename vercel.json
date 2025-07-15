@@ -1,9 +1,9 @@
 {
-  "build": {},
-  "cron": [
-    {
-      "path": "/api/sync-contacts?token=your_super_secret_token",
-      "schedule": "*/30 * * * *"
-    }
-  ]
+  "version": 2,
+  "functions": {
+    "api/sync-contacts.ts": {
+      "runtime": "nodejs18.x",
+      "schedule": "*/30 * * * *"
+    }
+  }
 }
