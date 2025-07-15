@@ -1,43 +1,43 @@
 const GHL_API_KEY = process.env.NEXT_PUBLIC_GHL_API_KEY as string;
 
-type Contact = {
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { app } from "@/firebase";
+
+export type Contact = {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
 };
 
-type Opportunity = {
+export type Opportunity = {
   id: string;
   name: string;
   status: string;
   value: number;
 };
 
-type Task = {
+export type Task = {
   id: string;
   title: string;
   status: string;
   contactId: string;
 };
 
-type Note = {
+export type Note = {
   id: string;
   body: string;
   contactId: string;
 };
 
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app } from "@/firebase";
-// import { getAllContacts } from "./ghl"; // Removed to avoid conflict with local declaration
-
+// 🔁 SYNC CONTACTS TO FIRESTORE
 export async function syncContactsToFirestore() {
   const db = getFirestore(app);
   const contacts = await getAllContacts();
 
-  const syncPromises = contacts.map((contact: any) => {
-    const contactRef = doc(db, "ghl_contacts", contact.id); // use contact ID as doc ID
-    return setDoc(contactRef, contact, { merge: true }); // merge prevents overwriting
+  const syncPromises = contacts.map((contact: Contact) => {
+    const contactRef = doc(db, "ghl_contacts", contact.id);
+    return setDoc(contactRef, contact, { merge: true });
   });
 
   try {
@@ -48,6 +48,7 @@ export async function syncContactsToFirestore() {
   }
 }
 
+// 📥 FETCH ALL CONTACTS
 export async function getAllContacts(apiKey = GHL_API_KEY): Promise<Contact[]> {
   let allContacts: Contact[] = [];
   let page = 1;
@@ -79,6 +80,7 @@ export async function getAllContacts(apiKey = GHL_API_KEY): Promise<Contact[]> {
   }
 }
 
+// 📓 FETCH NOTES FOR CONTACT
 export async function fetchNotesForContact(contactId: string, apiKey = GHL_API_KEY): Promise<Note[]> {
   try {
     const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}/notes`, {
@@ -96,6 +98,7 @@ export async function fetchNotesForContact(contactId: string, apiKey = GHL_API_K
   }
 }
 
+// 💼 FETCH OPPORTUNITIES
 export async function fetchOpportunities(apiKey = GHL_API_KEY): Promise<Opportunity[]> {
   try {
     const res = await fetch("https://rest.gohighlevel.com/v1/opportunities/", {
@@ -113,6 +116,7 @@ export async function fetchOpportunities(apiKey = GHL_API_KEY): Promise<Opportun
   }
 }
 
+// ✅ FETCH TASKS
 export async function fetchTasks(apiKey = GHL_API_KEY): Promise<Task[]> {
   try {
     const res = await fetch("https://rest.gohighlevel.com/v1/tasks", {
@@ -130,6 +134,7 @@ export async function fetchTasks(apiKey = GHL_API_KEY): Promise<Task[]> {
   }
 }
 
+// 📝 CREATE NOTE
 export async function createNoteForContact(contactId: string, body: string, apiKey = GHL_API_KEY): Promise<void> {
   try {
     await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}/notes`, {
@@ -145,6 +150,7 @@ export async function createNoteForContact(contactId: string, body: string, apiK
   }
 }
 
+// 🗒️ CREATE TASK
 export async function createTaskForContact(contactId: string, title: string, apiKey = GHL_API_KEY): Promise<void> {
   try {
     await fetch("https://rest.gohighlevel.com/v1/tasks", {
