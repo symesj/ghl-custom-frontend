@@ -1,39 +1,27 @@
-// app/api/ghlApiKey/route.ts
-
 import { NextResponse } from 'next/server';
-import { getFirestore, doc, getDoc } from 'firebase-admin/firestore';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-
-const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY as string);
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-}
+import { adminDb } from '@/lib/firebase-admin'; // ✅ Uses server-only Firestore
+import { doc, getDoc } from 'firebase-admin/firestore';
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const subAccountId = searchParams.get('subaccountId');
+
+  if (!subAccountId) {
+    return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const subaccountId = searchParams.get('subaccountId');
-
-    if (!subaccountId) {
-      return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
-    }
-
-    const db = getFirestore();
-    const docRef = doc(db, 'subaccounts', subaccountId, 'branding', 'config');
+    const docRef = doc(adminDb, 'subaccounts', subAccountId, 'branding', 'config');
     const snap = await getDoc(docRef);
 
-    if (!snap.exists()) {
-      console.warn(`⚠️ No config doc for subaccount: ${subaccountId}`);
+    if (!snap.exists) {
       return NextResponse.json({ error: 'No config found' }, { status: 404 });
     }
 
     const data = snap.data();
-    return NextResponse.json({ apiKey: data?.ghlApiKey || null });
+    return NextResponse.json({ apiKey: data?.ghlApiKey ?? null });
   } catch (err) {
-    console.error('❌ Error in /api/ghlApiKey:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('🔥 Error fetching GHL API key:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

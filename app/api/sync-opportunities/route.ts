@@ -1,36 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getAllOpportunities } from '@/lib/ghl';
-import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin'; // ✅ Uses server-only Firestore
+import { doc, getDoc } from 'firebase-admin/firestore';
 
-export const dynamic = 'force-dynamic';
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const subAccountId = searchParams.get('subaccountId');
 
-export async function GET() {
-  const apiKey = process.env.GHL_API_KEY;
-  const subAccountId = process.env.SUB_ACCOUNT_ID;
-
-  if (!apiKey || !subAccountId) {
-    console.error('❌ Missing API key or subAccount ID');
-    return NextResponse.json({ error: 'Missing API key or subAccount ID' }, { status: 400 });
+  if (!subAccountId) {
+    return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
   }
 
   try {
-    const opportunities = await getAllOpportunities(apiKey);
+    const docRef = doc(adminDb, 'subaccounts', subAccountId, 'branding', 'config');
+    const snap = await getDoc(docRef);
 
-    for (const opportunity of opportunities) {
-      await setDoc(
-        doc(db, 'opportunities', opportunity.id),
-        {
-          ...opportunity,
-          subAccountId,
-        },
-        { merge: true }
-      );
+    if (!snap.exists) {
+      return NextResponse.json({ error: 'No config found' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: '✅ Opportunities synced successfully' });
-  } catch (err: any) {
-    console.error('❌ Opportunity sync failed:', err);
-    return NextResponse.json({ error: 'Sync failed', details: err.message }, { status: 500 });
+    const data = snap.data();
+    return NextResponse.json({ apiKey: data?.ghlApiKey ?? null });
+  } catch (err) {
+    console.error('🔥 Error fetching GHL API key:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
