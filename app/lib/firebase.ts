@@ -1,19 +1,14 @@
-// app/lib/firebase.ts
+import { initializeApp, applicationDefault, cert, getApps, getApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+// Optional: use `cert()` with service account if needed
+const firebaseAdminConfig = {
+  credential: applicationDefault(), // Or use cert({ clientEmail, privateKey, projectId }) if needed
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const adminApp = getApps().length ? getApp() : initializeApp(firebaseAdminConfig);
 
-const db = getFirestore(app);
+const db = getFirestore(adminApp);
 
-export { app, db }; // ✅ EXPORT BOTH
+export { db };

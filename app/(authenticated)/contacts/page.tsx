@@ -2,75 +2,85 @@
 
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { app } from '@/firebase';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+
+import { db } from '@/lib/firebase'; // ✅ Only client-safe export
 import ContactModal from '@/components/ContactModal';
 import dynamic from 'next/dynamic';
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Lazy load the contact details
+const auth = getAuth();
 const ContactDetails = dynamic(() => import('@/components/ContactDetails'), { ssr: false });
 
 export default function ContactListPage() {
   const [contacts, setContacts] = useState<any[]>([]);
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [subAccountId, setSubAccountId] = useState<string | null>(null);
 
-  const fetchContacts = async (key: string) => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      try {
+        const userDoc = await getDocs(
+          query(collection(db, 'users'), where('uid', '==', user.uid))
+        );
+
+        if (userDoc.empty) {
+          console.warn('No Firestore user document found for:', user.uid);
+          return;
+        }
+
+        const userData = userDoc.docs[0].data();
+        const subId = userData?.subAccountId;
+
+        if (!subId) {
+          console.warn('No subAccountId found in user doc');
+          return;
+        }
+
+        setSubAccountId(subId);
+
+        // ✅ Fetch GHL API key from our API route
+        const res = await fetch(`/api/ghlApiKey?subaccountId=${subId}`);
+        const { apiKey } = await res.json();
+
+        if (!apiKey) {
+          console.warn(`⚠️ No GHL API key found for subaccount ${subId}`);
+        } else {
+          console.log("✅ GHL API Key:", apiKey);
+          setApiKey(apiKey);
+        }
+
+        fetchContactsFromFirestore(subId);
+      } catch (err) {
+        console.error('❌ Error in auth useEffect:', err);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const fetchContactsFromFirestore = async (subId: string) => {
     setLoading(true);
     try {
-      let allContacts: any[] = [];
-      let startAfter = '';
-      let startAfterId = '';
-      let hasMore = true;
+      const contactsRef = collection(db, 'ghl_contacts');
+      const q = query(contactsRef, where('subAccountId', '==', subId));
+      const querySnapshot = await getDocs(q);
 
-      while (hasMore) {
-        const url = `/api/contacts${startAfter ? `?startAfter=${startAfter}&startAfterId=${startAfterId}` : ''}`;
+      const results = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-        const res = await fetch(url, {
-          headers: {
-            ghlApiKey: key,
-          },
-        });
-
-        if (!res.ok) throw new Error(`Failed to fetch contacts: ${res.status}`);
-        const data = await res.json();
-
-        const batch = data.contacts || [];
-        allContacts = [...allContacts, ...batch];
-
-        if (data.meta?.nextPageUrl && batch.length > 0) {
-          const last = batch[batch.length - 1];
-          startAfter = last.createdAt;
-          startAfterId = last.id;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      setContacts(allContacts);
+      console.log(`🔎 Found ${results.length} contacts for subAccountId ${subId}`);
+      setContacts(results);
     } catch (err) {
-      console.error('Failed to fetch contacts', err);
+      console.error('❌ Error fetching contacts from Firestore:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      const key = userDoc.data()?.ghlApiKey;
-      setApiKey(key);
-      if (key) fetchContacts(key);
-    });
-  }, []);
-
-  const refreshContacts = () => {
-    if (apiKey) fetchContacts(apiKey);
   };
 
   return (
@@ -78,7 +88,7 @@ export default function ContactListPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">📇 Contacts</h1>
         <button
-          onClick={refreshContacts}
+          onClick={() => subAccountId && fetchContactsFromFirestore(subAccountId)}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
         >
           🔄 Refresh
@@ -95,7 +105,9 @@ export default function ContactListPage() {
               onClick={() => setSelectedContactId(contact.id)}
               className="bg-gray-800 p-4 rounded cursor-pointer hover:bg-gray-700"
             >
-              <p className="text-lg font-semibold">{contact.firstName} {contact.lastName}</p>
+              <p className="text-lg font-semibold">
+                {contact.firstName} {contact.lastName}
+              </p>
               <p className="text-sm text-gray-400">{contact.email}</p>
               <p className="text-sm text-gray-400">{contact.phone}</p>
             </div>

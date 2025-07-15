@@ -8,9 +8,10 @@ import { useState } from 'react';
 type SidebarProps = {
   role?: 'admin' | 'user' | null;
   onLogoutAction?: () => void;
+  subAccountId?: string | null; // ✅ Add this to match layout.tsx
 };
 
-export default function Sidebar({ role = null, onLogoutAction }: SidebarProps) {
+export default function Sidebar({ role = null, onLogoutAction, subAccountId = null }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -21,10 +22,7 @@ export default function Sidebar({ role = null, onLogoutAction }: SidebarProps) {
     { label: '📊 Analytics', href: '/charts' },
   ];
 
-  const adminNav = role === 'admin'
-    ? [{ label: '⚙️ Settings', href: '/settings' }]
-    : [];
-
+  const adminNav = role === 'admin' ? [{ label: '⚙️ Settings', href: '/settings' }] : [];
   const navItems = role ? [...baseNav, ...adminNav] : [];
 
   return (
@@ -83,6 +81,13 @@ export default function Sidebar({ role = null, onLogoutAction }: SidebarProps) {
                 </Link>
               )}
             </nav>
+
+            {/* Optional subAccountId debug display */}
+            {subAccountId && (
+              <p className="text-xs text-gray-400 text-center px-6 mt-4">
+                Subaccount ID: {subAccountId}
+              </p>
+            )}
           </div>
 
           {role && onLogoutAction && (

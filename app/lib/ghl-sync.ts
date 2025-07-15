@@ -16,17 +16,27 @@ export async function syncContactsToFirestore() {
 
   const userRef = doc(db, 'users', user.uid);
   const userSnap = await getDoc(userRef);
-  const apiKey = userSnap.data()?.ghlApiKey;
+  const userData = userSnap.data();
 
-  if (!apiKey) {
-    alert('Missing GHL API key');
+  const apiKey = userData?.ghlApiKey;
+  const subAccountId = userData?.subAccountId;
+
+  if (!apiKey || !subAccountId) {
+    alert('Missing GHL API key or subAccountId');
     return;
   }
 
   const contacts = await getAllContacts(apiKey);
 
   for (const contact of contacts) {
-    await setDoc(doc(db, 'ghl_contacts', contact.id), contact, { merge: true });
+    await setDoc(
+      doc(db, 'contacts', contact.id), // changed from 'ghl_contacts' to 'contacts' to match your Firestore structure
+      {
+        ...contact,
+        subAccountId, // tag each contact with the owner subaccount
+      },
+      { merge: true }
+    );
   }
 
   alert('✅ GHL contacts synced to Firestore');

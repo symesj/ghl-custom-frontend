@@ -1,21 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
-import { syncContactsToFirestore } from "@/lib/ghl";
+// app/api/sync-contacts/route.ts
 
-export const dynamic = "force-dynamic"; // required for cron to trigger on Vercel
+import { NextResponse } from 'next/server';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  setDoc,
+  doc,
+} from 'firebase/firestore';
 
-export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("token");
-  const expected = process.env.CRON_SECRET;
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
 
-  if (secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
 
+export async function GET() {
   try {
-    await syncContactsToFirestore();
-    return NextResponse.json({ message: "Synced contacts successfully" });
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
+    const allUsers = usersSnapshot.docs.map(doc => doc.data());
+
+    // example operation: store user count under meta/lastSync
+    const metaRef = doc(db, 'meta', 'lastSync');
+    await setDoc(metaRef, { timestamp: new Date().toISOString(), totalUsers: allUsers.length });
+
+    return NextResponse.json({ message: 'Synced successfully!', count: allUsers.length });
   } catch (err) {
-    console.error("Error during contact sync:", err);
-    return NextResponse.json({ error: "Sync failed" }, { status: 500 });
+    console.error('🔥 Sync error:', err);
+    return NextResponse.json({ error: 'Failed to sync' }, { status: 500 });
   }
 }
