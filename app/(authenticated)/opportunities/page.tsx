@@ -1,27 +1,42 @@
-import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin'; // ✅ Uses server-only Firestore
-import { doc, getDoc } from 'firebase-admin/firestore';
+'use client';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const subAccountId = searchParams.get('subaccountId');
+import { useEffect, useState } from 'react';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { app } from '@/firebase';
+import OpportunitiesTable from '@/components/OpportunitiesTable';
 
-  if (!subAccountId) {
-    return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
-  }
+export default function OpportunitiesPage() {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  try {
-    const docRef = doc(adminDb, 'subaccounts', subAccountId, 'branding', 'config');
-    const snap = await getDoc(docRef);
+  useEffect(() => {
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    if (!snap.exists) {
-      return NextResponse.json({ error: 'No config found' }, { status: 404 });
-    }
+    const load = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-    const data = snap.data();
-    return NextResponse.json({ apiKey: data?.ghlApiKey ?? null });
-  } catch (err) {
-    console.error('🔥 Error fetching GHL API key:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const key = snap.data()?.ghlApiKey;
+      if (key) setApiKey(key);
+      setLoading(false);
+    };
+
+    load();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (!apiKey) return <p className="text-red-500">Missing API key.</p>;
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Opportunities</h1>
+      <OpportunitiesTable apiKey={apiKey} />
+    </div>
+  );
 }
