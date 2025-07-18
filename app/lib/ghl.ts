@@ -1,7 +1,7 @@
 const GHL_API_KEY = process.env.NEXT_PUBLIC_GHL_API_KEY as string;
 
 import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app, db } from '@/lib/firebase';
+import { app, db } from '@/firebase';
 
 export type Contact = {
   id: string;
@@ -32,11 +32,12 @@ export type Note = {
 
 // 🔁 SYNC CONTACTS TO FIRESTORE
 export async function syncContactsToFirestore() {
-  const db = getFirestore(app);
+  // Use the client SDK instance
+  const dbInstance = db;
   const contacts = await getAllContacts();
 
   const syncPromises = contacts.map((contact: Contact) => {
-    const contactRef = doc(db, "ghl_contacts", contact.id);
+    const contactRef = doc(dbInstance, "ghl_contacts", contact.id);
     return setDoc(contactRef, contact, { merge: true });
   });
 
