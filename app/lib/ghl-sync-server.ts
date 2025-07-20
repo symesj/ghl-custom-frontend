@@ -1,6 +1,5 @@
 import { getAllContacts } from './ghl';
-import { db } from './firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { adminDb } from './firebase';
 
 export async function syncContactsToFirestoreServer(apiKey: string, subAccountId: string) {
   if (!apiKey || !subAccountId) {
@@ -10,14 +9,15 @@ export async function syncContactsToFirestoreServer(apiKey: string, subAccountId
   const contacts = await getAllContacts(apiKey);
 
   for (const contact of contacts) {
-    await setDoc(
-      doc(db, 'contacts', contact.id),
-      {
-        ...contact,
-        subAccountId,
-      },
-      { merge: true }
-    );
+    await adminDb.collection('contacts')
+      .doc(contact.id)
+      .set(
+        {
+          ...contact,
+          subAccountId,
+        },
+        { merge: true }
+      );
   }
 
   return `✅ Synced ${contacts.length} contacts`;

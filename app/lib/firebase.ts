@@ -11,4 +11,5 @@ const adminApp = getApps().length ? getApp() : initializeApp(firebaseAdminConfig
 
 const db = getFirestore(adminApp);
 
-export { db };
+// Expose as adminDb for clarity when imported elsewhere
+export { db, db as adminDb };

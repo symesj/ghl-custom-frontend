@@ -1,7 +1,7 @@
 const GHL_API_KEY = process.env.NEXT_PUBLIC_GHL_API_KEY as string;
 
 import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app, db } from '@/lib/firebase';
+import { app } from '@/firebase';
 
 export type Contact = {
   id: string;
