@@ -1,26 +1,15 @@
-import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase'; // ✅ Uses server-only Firestore
+// ✅ Server-only Firebase Admin SDK
+import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const subAccountId = searchParams.get('subaccountId');
+const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY as string);
 
-  if (!subAccountId) {
-    return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
-  }
+const adminApp = getApps().length === 0
+  ? initializeApp({
+      credential: cert(serviceAccount),
+    })
+  : getApps()[0];
 
-  try {
-    const docRef = adminDb.doc(`subaccounts/${subAccountId}/branding/config`);
-    const snap = await docRef.get();
+const adminDb = getFirestore(adminApp);
 
-    if (!snap.exists) {
-      return NextResponse.json({ error: 'No config found' }, { status: 404 });
-    }
-
-    const data = snap.data();
-    return NextResponse.json({ apiKey: data?.ghlApiKey ?? null });
-  } catch (err) {
-    console.error('🔥 Error fetching GHL API key:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+export { adminApp, adminDb };
