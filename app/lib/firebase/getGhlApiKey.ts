@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin'; // ✅ Uses server-only Firestore
-import { doc, getDoc } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -11,8 +10,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const docRef = doc(adminDb, 'subaccounts', subAccountId, 'branding', 'config');
-    const snap = await getDoc(docRef);
+    const docRef = adminDb.doc(`subaccounts/${subAccountId}/branding/config`);
+    const snap = await docRef.get();
 
     if (!snap.exists) {
       return NextResponse.json({ error: 'No config found' }, { status: 404 });
