@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="flex-1 p-6 overflow-y-auto bg-gray-900 text-white">
+    <main className="flex-1 p-6 bg-gray-900 text-white">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">

@@ -83,7 +83,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 bg-gray-900 text-white p-6 overflow-y-auto">
+    <main className="flex-1 bg-gray-900 text-white p-6">
       <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
       <p className="text-gray-400 text-sm mb-6">
         Subaccount: {subaccountName}
