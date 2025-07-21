@@ -2,6 +2,36 @@
 
 import { useEffect, useState } from 'react';
 
+function linkify(text: string) {
+  const urlRegex = /(https?:\/\/\S+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 underline"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+}
+
+function renderNoteBody(body: string) {
+  const lines = body.split(/\n/);
+  return lines.map((line, idx) => (
+    <span key={idx}>
+      {linkify(line)}
+      {idx < lines.length - 1 && <br />}
+    </span>
+  ));
+}
+
 type Props = {
   contactId: string;
   apiKey: string;
@@ -75,7 +105,7 @@ export default function ContactDetails({ contactId, apiKey }: Props) {
       {notes.length ? (
         <ul className="list-disc list-inside space-y-1">
           {notes.map((n) => (
-            <li key={n.id}>{n.body}</li>
+            <li key={n.id}>{renderNoteBody(n.body)}</li>
           ))}
         </ul>
       ) : (
