@@ -19,6 +19,7 @@ export default function ContactListPage() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
@@ -63,12 +64,28 @@ export default function ContactListPage() {
     }
   };
 
+  const filteredContacts = contacts.filter((c) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      c.firstName?.toLowerCase().includes(term) ||
+      c.lastName?.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="p-6 relative">
       <h1 className="text-3xl font-bold mb-6">📇 Contacts</h1>
 
-      {/* Refresh Button */}
-      <div className="mb-4 flex justify-end">
+      {/* Search & Refresh */}
+      <div className="mb-4 flex items-center gap-2">
+        <input
+          type="text"
+          placeholder="Search contacts…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-grow bg-gray-800 text-white px-3 py-2 rounded"
+        />
         <button
           onClick={() => apiKey && fetchContacts(apiKey)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold shadow disabled:opacity-50"
@@ -94,7 +111,7 @@ export default function ContactListPage() {
 
       {/* Contacts Grid */}
       <div className="grid md:grid-cols-3 gap-4">
-        {contacts.map((contact) => (
+        {filteredContacts.map((contact) => (
           <div
             key={contact.id}
             onClick={() => setSelectedContactId(contact.id)}
