@@ -86,7 +86,7 @@ export default function AuthenticatedLayout({
         />
       )}
 
-      <main className={`flex-1 ${!isLoginPage ? 'md:ml-64' : ''} overflow-y-auto p-6`}>
+      <main className="flex-1 overflow-y-auto p-6">
         {children}
       </main>
     </div>
