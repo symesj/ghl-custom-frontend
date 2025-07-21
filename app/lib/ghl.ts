@@ -169,3 +169,28 @@ export async function createTaskForContact(contactId: string, title: string, api
     console.error("❌ Failed to create task:", err);
   }
 }
+
+// ✏️ UPDATE CONTACT
+export async function updateContact(
+  contactId: string,
+  data: Partial<Contact>,
+  apiKey = GHL_API_KEY
+): Promise<void> {
+  try {
+    const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update contact: ${res.status}`);
+    }
+  } catch (err) {
+    console.error("❌ Failed to update contact:", err);
+    throw err;
+  }
+}
