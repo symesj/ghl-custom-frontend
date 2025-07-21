@@ -77,7 +77,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#121212] text-white">
+    <div className="relative flex min-h-screen bg-[#121212] text-white">
       {!isLoginPage && (
         <Sidebar
           role={role}
@@ -86,7 +86,7 @@ export default function AuthenticatedLayout({
         />
       )}
 
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 p-6">
         {children}
       </main>
     </div>
