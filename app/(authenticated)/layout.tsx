@@ -53,20 +53,15 @@ export default function AuthenticatedLayout({
         const userData = userSnap.data();
         const userRole = userData?.role || 'user';
         const subId = userData?.subAccountId;
+        const ghlKey = userData?.ghlApiKey;
 
         setRole(userRole);
         setSubAccountId(subId);
 
-        if (subId) {
-          const subRef = doc(db, 'subaccounts', subId);
-          const subSnap = await getDoc(subRef);
-          const ghlKey = subSnap.data()?.ghlApiKey;
-
-          if (!ghlKey) {
-            console.warn(`⚠️ No GHL API key found for subaccount ${subId}`);
-          } else {
-            setGhlApiKey(ghlKey);
-          }
+        if (!ghlKey) {
+          console.warn(`⚠️ No GHL API key found for user ${user.uid}`);
+        } else {
+          setGhlApiKey(ghlKey);
         }
       }
 
