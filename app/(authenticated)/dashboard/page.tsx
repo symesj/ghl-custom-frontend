@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import ContactModal from "@/components/ContactModal";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,9 @@ import { app } from "@/firebase";
 
 import DashboardStats from "@/components/DashboardStats";
 import OpportunityStats from "@/components/OpportunityStats"; // if you've split it
+
+// Lazy load the contact details component for the modal
+const ContactDetails = dynamic(() => import("@/components/ContactDetails"), { ssr: false });
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -19,6 +24,8 @@ export default function DashboardPage() {
   const [subaccountName, setSubaccountName] = useState("N/A");
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
 
   const handleLogoutAction = async () => {
     await signOut(auth);
@@ -37,6 +44,7 @@ export default function DashboardPage() {
         setRole(data.role || "user");
         setSubaccountId(data.subaccountId || "");
         setSubaccountName(data.subAccountName || "N/A");
+        setApiKey(data.ghlApiKey || null);
         fetchContacts(data.ghlApiKey);
       } else {
         router.push("/login");
@@ -90,7 +98,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {contacts.length > 0 ? (
             contacts.map((contact: any) => (
-              <div key={contact.id} className="bg-gray-800 p-4 rounded shadow">
+              <div
+                key={contact.id}
+                onClick={() => setSelectedContactId(contact.id)}
+                className="bg-gray-800 p-4 rounded shadow cursor-pointer hover:bg-gray-700"
+              >
                 <h3 className="text-lg font-bold">
                   {`${contact.firstName} ${contact.lastName}`.trim() ||
                     contact.email ||
@@ -104,6 +116,19 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      <ContactModal
+        isOpen={!!selectedContactId}
+        onCloseAction={() => setSelectedContactId(null)}
+        contactId={selectedContactId ?? ''}
+        ContactDetailComponent={
+          selectedContactId && apiKey ? (
+            <ContactDetails contactId={selectedContactId} apiKey={apiKey} />
+          ) : (
+            <></>
+          )
+        }
+      />
     </main>
   );
 }
