@@ -48,7 +48,8 @@ export default function ContactListPage() {
         const data = await res.json();
 
         allContacts = [...allContacts, ...(data.contacts || [])];
-        nextPageUrl = data.meta?.nextPageUrl || '';
+        const rawUrl = data.meta?.nextPageUrl || '';
+        nextPageUrl = rawUrl ? rawUrl.replace('http://', 'https://') : '';
       }
 
       setContacts(allContacts);
