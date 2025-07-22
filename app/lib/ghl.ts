@@ -1,4 +1,7 @@
-const GHL_API_KEY = process.env.NEXT_PUBLIC_GHL_API_KEY as string;
+// Agency-level API key used when a user key is not provided
+const GHL_API_KEY =
+  process.env.NEXT_PUBLIC_GHL_API_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoicmFYaFczOUdsUURDeUJnM0dHeUgiLCJ2ZXJzaW9uIjoxLCJpYXQiOjE3NTMxNzk4MDg5ODMsInN1YiI6Imo4YUJsb2JzbUlqWE1HMzcwRlF2In0.7Ck8mnMlTmxMczHbeDyKkj0XLPMV2r-dlZ4msPq1NgE';
 
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from '@/firebase';
