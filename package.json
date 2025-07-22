@@ -11,6 +11,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@vercel/speed-insights": "^1.2.0",
     "chart.js": "^3.9.1",
     "firebase": "^11.10.0",
     "firebase-admin": "^13.4.0",
