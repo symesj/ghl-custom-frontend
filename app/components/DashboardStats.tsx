@@ -10,7 +10,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/firebase";
 import { fetchOpportunities, getAllContacts } from "@/lib/ghl";
 
@@ -86,22 +86,23 @@ export default function DashboardStats() {
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const load = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const snap = await getDoc(doc(db, "users", user.uid));
       const key = snap.data()?.ghlApiKey || process.env.NEXT_PUBLIC_GHL_API_KEY || "";
-
-      if (!key) return;
-
-      setApiKey(key);
-      const data = await fetchOpportunities(key);
-      setOpportunities(data);
+      if (key) {
+        setApiKey(key);
+        const data = await fetchOpportunities(key);
+        setOpportunities(data);
+      }
       setLoading(false);
-    };
+    });
 
-    load();
+    return () => unsubscribe();
   }, []);
 
   const displayStats = [
