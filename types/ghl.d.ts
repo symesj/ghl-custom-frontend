@@ -12,6 +12,7 @@ export interface Opportunity {
   name: string;
   status: string;
   value: number;
+  contactId?: string;
   // Customize as needed
 }
 
