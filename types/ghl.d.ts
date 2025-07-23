@@ -3,7 +3,8 @@ export interface Contact {
   firstName: string;
   lastName: string;
   email: string;
-  // Add more if you're using them
+  company?: string;
+  type?: string;
 }
 
 export interface Opportunity {
@@ -11,6 +12,7 @@ export interface Opportunity {
   name: string;
   status: string;
   value: number;
+  contactId?: string;
   // Customize as needed
 }
 

@@ -7,8 +7,10 @@ import {
   onSnapshot,
   getDocs,
   addDoc,
+  doc,
+  getDoc,
 } from "firebase/firestore";
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/firebase";
 import { fetchOpportunities, getAllContacts } from "@/lib/ghl";
 
@@ -29,6 +31,7 @@ export default function DashboardStats() {
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string | null>(null);
 
   // Firebase users
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function DashboardStats() {
 
   // Manual sync function
   const handleContactSync = async () => {
-    const key = process.env.NEXT_PUBLIC_GHL_API_KEY || "";
+    const key = apiKey || process.env.NEXT_PUBLIC_GHL_API_KEY || "";
     if (!key) return alert("Missing GHL API key");
 
     const db = getFirestore(app);
@@ -80,13 +83,26 @@ export default function DashboardStats() {
 
   // GHL opportunities
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_GHL_API_KEY || "";
-    if (!key) return;
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    fetchOpportunities(key).then((data: Opportunity[]) => {
-      setOpportunities(data);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const key = snap.data()?.ghlApiKey || process.env.NEXT_PUBLIC_GHL_API_KEY || "";
+      if (key) {
+        setApiKey(key);
+        const data = await fetchOpportunities(key);
+        setOpportunities(data);
+      }
       setLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
   const displayStats = [

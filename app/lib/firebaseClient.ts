@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin'; // ✅ Uses server-only Firestore
-import { doc, getDoc } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const subAccountId = searchParams.get('subaccountId');
+  const userId = searchParams.get('userId');
 
-  if (!subAccountId) {
-    return NextResponse.json({ error: 'Missing subaccountId' }, { status: 400 });
+  if (!userId) {
+    return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
   }
 
   try {
-    const docRef = doc(adminDb, 'subaccounts', subAccountId, 'branding', 'config');
-    const snap = await getDoc(docRef);
+    const docRef = adminDb.doc(`users/${userId}`);
+    const snap = await docRef.get();
 
     if (!snap.exists) {
-      return NextResponse.json({ error: 'No config found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const data = snap.data();

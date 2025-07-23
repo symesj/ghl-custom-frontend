@@ -39,7 +39,7 @@ export default function Sidebar({ role = null, onLogoutAction, subAccountId = nu
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-[#0f0c29] text-white shadow-lg transform z-40 transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 left-0 h-full w-64 bg-[#0f0c29] text-white shadow-lg transform z-40 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 md:static md:flex`}
       >

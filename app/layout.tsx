@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Fast AI Boss",
@@ -14,11 +15,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icon-192x192.png" />
+        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
+        <link rel="icon" href="/icon-192.png" />
         <meta name="theme-color" content="#121212" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

@@ -1,7 +1,10 @@
-const GHL_API_KEY = process.env.NEXT_PUBLIC_GHL_API_KEY as string;
+// Agency-level API key used when a user key is not provided
+const GHL_API_KEY =
+  process.env.NEXT_PUBLIC_GHL_API_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoicmFYaFczOUdsUURDeUJnM0dHeUgiLCJ2ZXJzaW9uIjoxLCJpYXQiOjE3NTMxNzk4MDg5ODMsInN1YiI6Imo4YUJsb2JzbUlqWE1HMzcwRlF2In0.7Ck8mnMlTmxMczHbeDyKkj0XLPMV2r-dlZ4msPq1NgE';
 
 import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app, db } from '@/lib/firebase';
+import { app } from '@/firebase';
 
 export type Contact = {
   id: string;
@@ -167,5 +170,30 @@ export async function createTaskForContact(contactId: string, title: string, api
     });
   } catch (err) {
     console.error("❌ Failed to create task:", err);
+  }
+}
+
+// ✏️ UPDATE CONTACT
+export async function updateContact(
+  contactId: string,
+  data: Partial<Contact>,
+  apiKey = GHL_API_KEY
+): Promise<void> {
+  try {
+    const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update contact: ${res.status}`);
+    }
+  } catch (err) {
+    console.error("❌ Failed to update contact:", err);
+    throw err;
   }
 }

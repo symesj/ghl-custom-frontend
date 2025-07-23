@@ -1,4 +1,7 @@
-const GHL_API_KEY = process.env.GHL_API_KEY as string;
+// Default to the agency API key when none is supplied via env
+const GHL_API_KEY =
+  process.env.GHL_API_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55X2lkIjoicmFYaFczOUdsUURDeUJnM0dHeUgiLCJ2ZXJzaW9uIjoxLCJpYXQiOjE3NTMxNzk4MDg5ODMsInN1YiI6Imo4YUJsb2JzbUlqWE1HMzcwRlF2In0.7Ck8mnMlTmxMczHbeDyKkj0XLPMV2r-dlZ4msPq1NgE';
 
 export async function fetchNotesForContact(contactId: string, apiKey = GHL_API_KEY) {
   try {

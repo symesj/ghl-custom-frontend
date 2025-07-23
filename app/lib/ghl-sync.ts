@@ -3,7 +3,7 @@
 import { getAllContacts } from './ghl';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { db, app } from './firebase';
+import { db, app } from '../firebase';
 
 export async function syncContactsToFirestore() {
   const auth = getAuth(app);

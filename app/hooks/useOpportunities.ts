@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 export type Opportunity = {
   id: string;
+  contactId?: string;
   name?: string;
   status?: string;
   value?: number;

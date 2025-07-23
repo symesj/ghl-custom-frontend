@@ -53,20 +53,15 @@ export default function AuthenticatedLayout({
         const userData = userSnap.data();
         const userRole = userData?.role || 'user';
         const subId = userData?.subAccountId;
+        const ghlKey = userData?.ghlApiKey;
 
         setRole(userRole);
         setSubAccountId(subId);
 
-        if (subId) {
-          const subRef = doc(db, 'subaccounts', subId);
-          const subSnap = await getDoc(subRef);
-          const ghlKey = subSnap.data()?.ghlApiKey;
-
-          if (!ghlKey) {
-            console.warn(`⚠️ No GHL API key found for subaccount ${subId}`);
-          } else {
-            setGhlApiKey(ghlKey);
-          }
+        if (!ghlKey) {
+          console.warn(`⚠️ No GHL API key found for user ${user.uid}`);
+        } else {
+          setGhlApiKey(ghlKey);
         }
       }
 
@@ -82,7 +77,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#121212] text-white">
+    <div className="relative flex min-h-screen bg-[#121212] text-white">
       {!isLoginPage && (
         <Sidebar
           role={role}
@@ -91,7 +86,7 @@ export default function AuthenticatedLayout({
         />
       )}
 
-      <main className={`flex-1 ${!isLoginPage ? 'md:ml-64' : ''} overflow-y-auto p-6`}>
+      <main className="flex-1 p-6">
         {children}
       </main>
     </div>
