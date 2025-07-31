@@ -19,6 +19,9 @@ export default function ContactListPage() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
@@ -52,6 +55,7 @@ export default function ContactListPage() {
       }
 
       setContacts(allContacts);
+      setPage(1);
       setToast(`✅ ${allContacts.length} contacts loaded successfully`);
     } catch (err) {
       console.error('Failed to fetch contacts', err);
@@ -66,8 +70,16 @@ export default function ContactListPage() {
     <div className="p-6 relative">
       <h1 className="text-3xl font-bold mb-6">📇 Contacts</h1>
 
-      {/* Refresh Button */}
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
+        <input
+          value={search}
+          onChange={e => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
+          placeholder="Search..."
+          className="px-3 py-2 rounded bg-gray-700 text-sm focus:outline-none"
+        />
         <button
           onClick={() => apiKey && fetchContacts(apiKey)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold shadow disabled:opacity-50"
@@ -93,7 +105,14 @@ export default function ContactListPage() {
 
       {/* Contacts Grid */}
       <div className="grid md:grid-cols-3 gap-4">
-        {contacts.map((contact) => (
+        {contacts
+          .filter(c =>
+            `${c.firstName} ${c.lastName} ${c.companyName ?? ''}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
+          )
+          .slice((page - 1) * pageSize, page * pageSize)
+          .map((contact) => (
           <div
             key={contact.id}
             onClick={() => setSelectedContactId(contact.id)}
@@ -106,6 +125,28 @@ export default function ContactListPage() {
             <p className="text-sm text-gray-400">{contact.phone}</p>
           </div>
         ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-4 gap-2">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+          className="px-3 py-1 rounded bg-gray-700 disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm px-2 py-1">Page {page}</span>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={page * pageSize >=
+            contacts.filter(c => `${c.firstName} ${c.lastName} ${c.companyName ?? ''}`
+              .toLowerCase()
+              .includes(search.toLowerCase())).length}
+          className="px-3 py-1 rounded bg-gray-700 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
 
       {/* Contact Detail Modal */}
