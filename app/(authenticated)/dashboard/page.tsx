@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { app } from "@/firebase";
 
 import DashboardStats from "@/components/DashboardStats";
-import OpportunityStats from "@/components/OpportunityStats"; // if you've split it
+import OpportunityStats from "@/components/OpportunityStats";
+import OpportunitiesWidget from "@/components/OpportunitiesWidget";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [subaccountName, setSubaccountName] = useState("N/A");
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ghlApiKey, setGhlApiKey] = useState<string | null>(null);
 
   const handleLogoutAction = async () => {
     await signOut(auth);
@@ -37,6 +39,7 @@ export default function DashboardPage() {
         setRole(data.role || "user");
         setSubaccountId(data.subaccountId || "");
         setSubaccountName(data.subAccountName || "N/A");
+        setGhlApiKey(data.ghlApiKey || null);
         fetchContacts(data.ghlApiKey);
       } else {
         router.push("/login");
@@ -82,7 +85,12 @@ export default function DashboardPage() {
       </p>
 
       <DashboardStats />
-      <div className="my-6" />
+      {ghlApiKey && (
+        <div className="my-6">
+          <OpportunitiesWidget apiKey={ghlApiKey} />
+        </div>
+      )}
+
 
       {loading ? (
         <p>Loading contacts...</p>

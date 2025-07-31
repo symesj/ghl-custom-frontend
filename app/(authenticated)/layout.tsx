@@ -1,6 +1,7 @@
 'use client';
 
 import Sidebar from '../components/Sidebar';
+import StatusBar from '../components/StatusBar';
 import '../globals.css';
 
 import { useRouter, usePathname } from 'next/navigation';
@@ -91,9 +92,10 @@ export default function AuthenticatedLayout({
         />
       )}
 
-      <main className={`flex-1 ${!isLoginPage ? 'md:ml-64' : ''} overflow-y-auto p-6`}>
-        {children}
-      </main>
+      <div className={`flex-1 flex flex-col ${!isLoginPage ? 'md:ml-64' : ''}`}> 
+        {!isLoginPage && <StatusBar />}
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      </div>
     </div>
   );
 }
